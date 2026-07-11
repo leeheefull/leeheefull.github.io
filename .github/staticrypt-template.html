@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>/*[|template_title|]*/0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- do not cache this page -->
+    <meta http-equiv="cache-control" content="max-age=0" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="expires" content="0" />
+    <meta http-equiv="pragma" content="no-cache" />
+
+    <style>
+        :root {
+            --green: #00ff41;
+            --dim: #0a3d1a;
+            --red: #ff2b4e;
+            --bg: #010401;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; }
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: "SF Mono", Menlo, Monaco, "Courier New", monospace;
+            overflow: hidden;
+        }
+        #matrix {
+            position: fixed;
+            inset: 0;
+            opacity: 0.18;
+        }
+        .crt::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0px,
+                rgba(0, 0, 0, 0) 2px,
+                rgba(0, 0, 0, 0.25) 3px
+            );
+            z-index: 3;
+        }
+        .wrap {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .terminal {
+            width: 100%;
+            max-width: 720px;
+            background: rgba(1, 8, 3, 0.92);
+            border: 1px solid #073d17;
+            border-radius: 8px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.12), inset 0 0 60px rgba(0, 255, 65, 0.03);
+        }
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #073d17;
+            color: #1f8f4d;
+            font-size: 12px;
+        }
+        .dot { width: 11px; height: 11px; border-radius: 50%; background: #143; }
+        .dot.r { background: #3a1218; } .dot.y { background: #3a2f10; } .dot.g { background: #0f3a1c; }
+        .bar-title { margin-left: 8px; letter-spacing: 1px; }
+        #screen {
+            padding: 22px 20px 26px;
+            font-size: 14px;
+            line-height: 1.75;
+            min-height: 300px;
+            text-shadow: 0 0 6px rgba(0, 255, 65, 0.45);
+        }
+        #screen .line { white-space: pre-wrap; word-break: break-all; }
+        #screen .line.err { color: var(--red); text-shadow: 0 0 6px rgba(255, 43, 78, 0.5); }
+        #screen .line.ok { color: var(--green); }
+        .cur::after {
+            content: "█";
+            animation: blink 0.9s steps(1) infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        #prompt-line { display: none; align-items: baseline; }
+        #prompt-line .ps1 { color: #35d97a; margin-right: 8px; white-space: nowrap; }
+        #staticrypt-password {
+            flex: 1;
+            background: transparent;
+            border: 0;
+            outline: 0;
+            color: var(--green);
+            caret-color: var(--green);
+            font: inherit;
+            text-shadow: inherit;
+            letter-spacing: 2px;
+        }
+        #remember-line {
+            display: none;
+            margin-top: 10px;
+            color: #1f8f4d;
+            cursor: pointer;
+            user-select: none;
+            font-size: 13px;
+        }
+        #remember-line:hover { color: var(--green); }
+        #staticrypt-remember { display: none; }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            text-align: center;
+        }
+        .overlay .big { font-size: clamp(28px, 7vw, 64px); }
+        .overlay .sub { font-size: 13px; letter-spacing: 3px; opacity: 0.8; }
+        #denied {
+            background: rgba(40, 0, 6, 0.85);
+            color: var(--red);
+            text-shadow: 0 0 18px rgba(255, 43, 78, 0.8);
+            animation: alarm 0.25s steps(2) 4;
+        }
+        #granted {
+            background: rgba(0, 24, 8, 0.9);
+            color: var(--green);
+            text-shadow: 0 0 22px rgba(0, 255, 65, 0.9);
+        }
+        @keyframes alarm { 50% { background: rgba(90, 0, 14, 0.9); } }
+        .shake { animation: shake 0.4s; }
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(4px); }
+            30%, 70% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+
+<body class="crt">
+    <canvas id="matrix"></canvas>
+
+    <div class="wrap" id="wrap">
+        <div class="terminal">
+            <div class="bar">
+                <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+                <span class="bar-title">root@leeheefull — ssh — 80×24</span>
+            </div>
+            <div id="screen">
+                <form id="staticrypt-form" action="#" method="post">
+                    <div id="prompt-line">
+                        <span class="ps1">root@leeheefull:~#</span>
+                        <input id="staticrypt-password" type="password" name="password"
+                               autocomplete="off" spellcheck="false" />
+                    </div>
+                    <label id="remember-line" for="staticrypt-remember">
+                        <input id="staticrypt-remember" type="checkbox" name="remember" />
+                        <span id="remember-box">[ ]</span> /*[|template_remember|]*/0
+                    </label>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="denied">
+        <div class="big">ACCESS DENIED</div>
+        <div class="sub">INVALID CREDENTIALS — INCIDENT LOGGED</div>
+    </div>
+    <div class="overlay" id="granted">
+        <div class="big">ACCESS GRANTED</div>
+        <div class="sub">DECRYPTING PAYLOAD ...</div>
+    </div>
+
+    <script>
+        // these variables are filled by staticrypt at build time
+        const staticryptInitiator = /*[|js_staticrypt|]*/ 0;
+        const isRememberEnabled = /*[|is_remember_enabled|]*/ 0,
+            staticryptConfig = /*[|staticrypt_config|]*/ 0;
+
+        // --- matrix rain -------------------------------------------------
+        const canvas = document.getElementById("matrix"),
+            ctx = canvas.getContext("2d");
+        let cols, drops;
+        const glyphs = "アイウエオカキクケコサシスセソタチツテト0123456789ABCDEF<>/\\{}$#@%&";
+        function sizeMatrix() {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+            cols = Math.floor(innerWidth / 16);
+            drops = Array(cols).fill(1);
+        }
+        sizeMatrix();
+        addEventListener("resize", sizeMatrix);
+        setInterval(function () {
+            ctx.fillStyle = "rgba(1, 4, 1, 0.08)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff41";
+            ctx.font = "14px monospace";
+            for (let i = 0; i < cols; i++) {
+                ctx.fillText(glyphs[(Math.random() * glyphs.length) | 0], i * 16, drops[i] * 16);
+                if (drops[i] * 16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }, 60);
+
+        // --- terminal ----------------------------------------------------
+        const screen = document.getElementById("screen"),
+            form = document.getElementById("staticrypt-form"),
+            promptLine = document.getElementById("prompt-line"),
+            rememberLine = document.getElementById("remember-line"),
+            rememberBox = document.getElementById("remember-box"),
+            rememberCheck = document.getElementById("staticrypt-remember"),
+            input = document.getElementById("staticrypt-password");
+
+        let terminalShown = false;
+
+        function addLine(cls) {
+            const div = document.createElement("div");
+            div.className = "line " + (cls || "");
+            screen.insertBefore(div, form);
+            return div;
+        }
+
+        function sleep(ms) {
+            return new Promise(function (r) { setTimeout(r, ms); });
+        }
+
+        async function typeLine(text, cls, speed) {
+            const div = addLine(cls);
+            div.classList.add("cur");
+            for (let i = 0; i < text.length; i++) {
+                div.textContent += text[i];
+                await sleep(speed || 8);
+            }
+            div.classList.remove("cur");
+        }
+
+        const bootSequence = [
+            ["> INITIALIZING SECURE TERMINAL v3.5.4 ......... OK", 6],
+            ["> ESTABLISHING ENCRYPTED CHANNEL [TLS 1.3] .... OK", 6],
+            ["> TARGET ACQUIRED :: leeheefull.github.io", 10],
+            ["> FETCHING PAYLOAD [AES-256-CBC] .............. OK", 6],
+            ["> SCANNING FOR DECRYPTION KEY ................. NOT FOUND", 6],
+            ["> MANUAL AUTHORIZATION REQUIRED", 14],
+            ["", 0],
+        ];
+
+        async function boot() {
+            terminalShown = true;
+            for (const [text, speed] of bootSequence) {
+                await typeLine(text, "", speed);
+                await sleep(90);
+            }
+            promptLine.style.display = "flex";
+            if (isRememberEnabled) rememberLine.style.display = "block";
+            input.focus();
+        }
+
+        rememberLine.addEventListener("click", function () {
+            setTimeout(function () {
+                rememberBox.textContent = rememberCheck.checked ? "[x]" : "[ ]";
+            }, 0);
+        });
+
+        // keep focus on the hidden-caret input, terminal style
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest("#remember-line")) input.focus();
+        });
+
+        function flashOverlay(id, ms) {
+            const el = document.getElementById(id);
+            el.style.display = "flex";
+            return sleep(ms).then(function () {
+                el.style.display = "none";
+            });
+        }
+
+        // --- staticrypt wiring --------------------------------------------
+        const templateConfig = {
+            rememberExpirationKey: "staticrypt_expiration",
+            rememberPassphraseKey: "staticrypt_passphrase",
+            replaceHtmlCallback: function (plainHTML) {
+                const write = function () {
+                    document.open();
+                    document.write(plainHTML);
+                    document.close();
+                };
+                if (!terminalShown) return write(); // remembered session: skip theatrics
+                flashOverlay("granted", 1100).then(write);
+            },
+            clearLocalStorageCallback: null,
+        };
+
+        const staticrypt = staticryptInitiator.init(staticryptConfig, templateConfig);
+
+        window.onload = async function () {
+            const { isSuccessful } = await staticrypt.handleDecryptOnLoad();
+            if (!isSuccessful) boot();
+        };
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const password = input.value;
+            if (!password) return;
+            input.value = "";
+
+            addLine().textContent = "root@leeheefull:~# " + "*".repeat(password.length);
+            await typeLine("> VERIFYING KEY ...", "", 10);
+
+            const { isSuccessful } = await staticrypt.handleDecryptionOfPage(password, rememberCheck.checked);
+
+            if (!isSuccessful) {
+                document.getElementById("wrap").classList.add("shake");
+                await flashOverlay("denied", 1300);
+                document.getElementById("wrap").classList.remove("shake");
+                await typeLine("> ACCESS DENIED :: INVALID KEY", "err", 8);
+                await typeLine("> RETRY AUTHORIZATION", "", 8);
+                input.focus();
+            }
+        });
+    </script>
+</body>
+</html>
