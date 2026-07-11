@@ -1,0 +1,352 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const base = import.meta.env.BASE_URL;
+
+const allProjects = await getCollection('projects');
+const projectsOf = (company: string) =>
+  allProjects
+    .filter((p) => p.data.company === company)
+    .sort((a, b) => a.data.order - b.data.order);
+
+const careers = [
+  {
+    company: '마이리얼트립',
+    team: 'Stay실 · 숙박프로덕트팀',
+    period: '2024.12 - 현재',
+    description: '마이리얼트립 숙박 관련 서버 개발',
+    projects: projectsOf('마이리얼트립'),
+  },
+  {
+    company: '위메프 · 큐텐테크놀로지',
+    period: '2022.05 - 2024.09 (2년 4개월)',
+    description: '위메프 입사 후 큐텐의 위메프 인수에 따라 큐텐테크놀로지로 전적, 연속 근무',
+    phases: [
+      {
+        company: '큐텐테크놀로지',
+        team: '여행컬처개발그룹 · 백엔드개발팀',
+        period: '2023.06 - 2024.09',
+        description: '위메프 투어 서비스 관련 서버 개발',
+        note: '위메프 인수에 따른 전적',
+        projects: projectsOf('큐텐테크놀로지'),
+      },
+      {
+        company: '위메프',
+        team: '플랫폼개발실 · 파트너개발팀',
+        period: '2022.05 - 2023.06',
+        description: '위메프 파트너 및 제휴쇼핑몰 서비스 관련 서버 개발',
+        projects: projectsOf('위메프'),
+      },
+    ],
+  },
+  {
+    company: '포시에스',
+    team: 'R&D연구소 · 클라우드개발팀 (인턴)',
+    period: '2021.09 - 2021.12',
+    description: '이폼사인 전자계약 서비스 관련 서버 개발',
+    projects: [],
+  },
+];
+
+const skills = [
+  'Java',
+  'Kotlin',
+  'Spring MVC',
+  'Spring Batch',
+  'Spring Cloud',
+  'JPA',
+  'QueryDSL',
+  'MyBatis',
+  'MySQL',
+  'Redis',
+  'ElasticSearch',
+  'Kafka',
+];
+---
+
+<Base title="이희찬 | Backend Engineer">
+  <header class="hero">
+    <h1>이희찬</h1>
+    <p class="role">Backend Engineer</p>
+    <p class="intro">
+      여행·커머스 도메인에서 숙박, 투어, 파트너 서비스의 서버를 개발해온 백엔드 개발자입니다.
+    </p>
+    <ul class="contacts">
+      <li><a href="mailto:leeheefull@gmail.com">leeheefull@gmail.com</a></li>
+      <li><a href="https://github.com/leeheefull" target="_blank" rel="noopener">github.com/leeheefull</a></li>
+    </ul>
+  </header>
+
+  <section>
+    <h2 class="section-title">경력 & 프로젝트</h2>
+    <ol class="timeline">
+      {
+        careers.map((career) => (
+          <li>
+            <div class="timeline-head">
+              <h3>{career.company}</h3>
+              <span class="period">{career.period}</span>
+            </div>
+            {career.team && <p class="team">{career.team}</p>}
+            <p class="desc">{career.description}</p>
+
+            {career.projects && career.projects.length > 0 && (
+              <ul class="project-cards">
+                {career.projects.map((project) => (
+                  <li>
+                    <a class="project-card" href={`${base}/projects/${project.id}/`}>
+                      <div class="card-head">
+                        <span class="card-title">{project.data.title}</span>
+                        {project.data.period && <span class="period">{project.data.period}</span>}
+                      </div>
+                      <p class="card-summary">{project.data.summary}</p>
+                      {project.data.tech.length > 0 && (
+                        <ul class="card-tech">
+                          {project.data.tech.slice(0, 5).map((t) => (
+                            <li class="chip">{t}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {career.phases && (
+              <ul class="phases">
+                {career.phases.map((phase) => (
+                  <li>
+                    <div class="timeline-head">
+                      <h4>
+                        {phase.company}
+                        {phase.note && <span class="note-badge">{phase.note}</span>}
+                      </h4>
+                      <span class="period">{phase.period}</span>
+                    </div>
+                    <p class="team">{phase.team}</p>
+                    <p class="desc">{phase.description}</p>
+                    {phase.projects.length > 0 && (
+                      <ul class="project-cards">
+                        {phase.projects.map((project) => (
+                          <li>
+                            <a class="project-card" href={`${base}/projects/${project.id}/`}>
+                              <div class="card-head">
+                                <span class="card-title">{project.data.title}</span>
+                                {project.data.period && (
+                                  <span class="period">{project.data.period}</span>
+                                )}
+                              </div>
+                              <p class="card-summary">{project.data.summary}</p>
+                              {project.data.tech.length > 0 && (
+                                <ul class="card-tech">
+                                  {project.data.tech.slice(0, 5).map((t) => (
+                                    <li class="chip">{t}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section>
+    <h2 class="section-title">기술 스택</h2>
+    <ul class="skills">
+      {skills.map((skill) => <li class="chip">{skill}</li>)}
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="section-title">자격증</h2>
+    <p>
+      <strong>정보처리기사</strong>
+      <span class="cert-meta"> · 한국산업인력공단 · 2021.06</span>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+  }
+
+  .role {
+    margin-top: 4px;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .intro {
+    margin-top: 16px;
+    color: var(--text-soft);
+  }
+
+  .contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 16px;
+    list-style: none;
+    font-size: 0.95rem;
+  }
+
+  .timeline {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  .timeline > li {
+    position: relative;
+    padding-left: 26px;
+    border-left: 2px solid var(--border);
+  }
+
+  .timeline > li::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .timeline-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 14px;
+  }
+
+  .timeline-head h3 {
+    font-size: 1.15rem;
+  }
+
+  .period {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  .team {
+    margin-top: 2px;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .desc {
+    margin-top: 6px;
+    font-size: 0.95rem;
+  }
+
+  .phases {
+    list-style: none;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .phases > li {
+    padding: 16px 18px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .phases h4 {
+    font-size: 0.98rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .note-badge {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .project-cards {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .project-card {
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: inherit;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .project-card:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    box-shadow: 0 2px 10px rgb(9 105 218 / 0.08);
+  }
+
+  .card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px 14px;
+  }
+
+  .card-title {
+    font-weight: 700;
+  }
+
+  .card-summary {
+    margin-top: 6px;
+    font-size: 0.92rem;
+    color: var(--text-soft);
+  }
+
+  .card-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+    list-style: none;
+  }
+
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+  }
+
+  .cert-meta {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+  }
+</style>
