@@ -1,0 +1,307 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: linear-gradient(170deg, #fff5f8 0%, #ffe3ec 45%, #ffd0e0 100%);
+  font-family: "Gowun Dodum", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  color: #6b2b41;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* 배경이 은은하게 숨쉬듯 밝아졌다 어두워진다 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.85), transparent 60%);
+  animation: breathe 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+#hearts {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  pointer-events: none;
+}
+
+section {
+  text-align: center;
+}
+
+.greeting {
+  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  color: #d67b9a;
+  margin-bottom: 8px;
+  opacity: 0;
+  animation: rise 0.9s ease-out 0.1s forwards;
+}
+
+.couple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 20px);
+  font-size: clamp(2.4rem, 12vw, 4.5rem);
+  font-weight: 400;
+  line-height: 1.3;
+  text-shadow: 0 2px 12px rgba(255, 255, 255, 0.8);
+}
+
+.name {
+  opacity: 0;
+  animation: rise 0.9s ease-out forwards;
+}
+
+.name:first-of-type { animation-delay: 0.3s; }
+.name:last-of-type { animation-delay: 0.7s; }
+
+.heart {
+  color: #ff5a86;
+  font-size: 0.85em;
+  opacity: 0;
+  animation: rise 0.6s ease-out 0.5s forwards, beat 1.2s ease-in-out 1.1s infinite;
+  text-shadow: 0 0 18px rgba(255, 90, 134, 0.5);
+}
+
+.dday {
+  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
+  font-size: clamp(1.3rem, 5.5vw, 1.9rem);
+  color: #d67b9a;
+  margin-top: 14px;
+  opacity: 0;
+  animation: rise 0.9s ease-out 1s forwards;
+}
+
+.hint {
+  margin-top: 28px;
+  font-size: clamp(0.85rem, 3.5vw, 1rem);
+  color: #c98ba3;
+  opacity: 0;
+  animation: fadeInOut 3s ease-in-out 1.6s infinite;
+}
+
+/* ── 햄버거 메뉴 ── */
+.menu-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  background: none;
+  border: none;
+  padding: 10px;
+  font-size: 1.5rem;
+  color: #d67b9a;
+  cursor: pointer;
+}
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  background: rgba(255, 241, 246, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.menu.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu a {
+  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
+  font-size: 2.2rem;
+  color: #b9557d;
+  text-decoration: none;
+}
+
+/* ── 글 남기기 페이지 ── */
+.page-notes {
+  overflow-y: auto;
+}
+
+.page-notes textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.notes {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+  pointer-events: auto;
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.notes-header .back {
+  font-size: 1.4rem;
+  color: #d67b9a;
+  text-decoration: none;
+  padding: 6px 10px 6px 0;
+}
+
+.notes-header h1 {
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+#noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 4px 18px rgba(233, 79, 124, 0.08);
+}
+
+.who {
+  display: flex;
+  gap: 8px;
+}
+
+.who input {
+  position: absolute;
+  opacity: 0;
+}
+
+.who span {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #f0a8c0;
+  color: #b9557d;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.who input:checked + span {
+  background: #ff7ba1;
+  border-color: #ff7ba1;
+  color: #fff;
+}
+
+#noteText {
+  border: none;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #6b2b41;
+  resize: none;
+  outline: none;
+}
+
+#noteSubmit {
+  border: none;
+  border-radius: 999px;
+  padding: 10px;
+  background: #ff5a86;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#noteSubmit:disabled {
+  opacity: 0.5;
+}
+
+.notes-status {
+  margin: 14px 4px 6px;
+  font-size: 0.9rem;
+  color: #c98ba3;
+}
+
+.note-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.note-list li {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.note-list .meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #c9769a;
+  margin-bottom: 4px;
+}
+
+.note-list .msg {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes beat {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.18); }
+  40% { transform: scale(1); }
+  60% { transform: scale(1.12); }
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.9; }
+}
