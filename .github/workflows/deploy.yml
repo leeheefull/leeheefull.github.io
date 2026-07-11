@@ -35,10 +35,24 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site
-          cp index.html _site/
           touch _site/.nojekyll
           rsync -a yuju/ _site/yuju/
           rsync -a portfolio/dist/ _site/portfolio/
+
+      - name: Encrypt index page
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+        run: |
+          if [ -z "$SITE_PASSWORD" ]; then
+            echo "SITE_PASSWORD secret is not set" >&2
+            exit 1
+          fi
+          npx -y staticrypt index.html -p "$SITE_PASSWORD" -d _site \
+            --short --remember 30 \
+            --template-title "leeheefull" \
+            --template-instructions "" \
+            --template-button "열기" \
+            --template-placeholder "암호"
 
       - uses: actions/upload-pages-artifact@v3
         with:

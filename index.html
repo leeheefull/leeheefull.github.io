@@ -1,5 +1,103 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><title>leeheefull</title></head>
-<body></body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>leeheefull</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1f2328;
+      --muted: #656d76;
+      --card: #f6f8fa;
+      --card-hover: #eaeef2;
+      --border: #d0d7de;
+      --accent: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0d1117;
+        --fg: #e6edf3;
+        --muted: #8b949e;
+        --card: #161b22;
+        --card-hover: #1f2630;
+        --border: #30363d;
+        --accent: #58a6ff;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+      line-height: 1.6;
+    }
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 64px 24px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 4px;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin: 0 0 40px;
+      font-size: 0.95rem;
+    }
+    .projects {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .projects a {
+      display: block;
+      padding: 16px 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.15s;
+    }
+    .projects a:hover {
+      background: var(--card-hover);
+    }
+    .name {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>leeheefull</h1>
+    <p class="subtitle">프로젝트 목차</p>
+    <ul class="projects">
+      <li>
+        <a href="/portfolio/">
+          <div class="name">portfolio</div>
+          <div class="desc">백엔드 개발자 이희찬의 포트폴리오</div>
+        </a>
+      </li>
+      <li>
+        <a href="/yuju/">
+          <div class="name">yuju</div>
+          <div class="desc">희찬 ❤️ 유주 — 우리 둘의 페이지</div>
+        </a>
+      </li>
+    </ul>
+  </main>
+</body>
 </html>
