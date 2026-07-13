@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#ffd9e4">
+  <title>스페인어 단어장 · 희찬 ❤️ 유주</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="page-voca">
+  <canvas id="hearts"></canvas>
+
+  <main class="voca">
+    <header class="notes-header">
+      <a class="back" href="../" aria-label="홈으로">←</a>
+      <h1>스페인어 단어장</h1>
+    </header>
+
+    <!-- 모드 선택 -->
+    <section id="vocaMenu" class="voca-menu">
+      <p class="voca-status" id="vocaStatus">단어를 불러오는 중...</p>
+      <button class="voca-mode" id="modeAll" disabled>문제 풀기</button>
+      <button class="voca-mode" id="modeFail" disabled>자주 틀린 문제 풀기</button>
+    </section>
+
+    <!-- 퀴즈 -->
+    <section id="vocaQuiz" class="voca-quiz" hidden>
+      <p class="voca-progress" id="quizProgress"></p>
+      <div class="voca-card">
+        <p class="voca-word" id="quizWord"></p>
+        <p class="voca-hint" id="quizHint" hidden></p>
+        <button class="voca-hint-btn" id="hintBtn">힌트 보기</button>
+      </div>
+      <div class="voca-options" id="quizOptions"></div>
+      <p class="voca-feedback" id="quizFeedback"></p>
+      <button class="voca-next" id="nextBtn" hidden>다음 문제</button>
+    </section>
+
+    <!-- 결과 -->
+    <section id="vocaResult" class="voca-result" hidden>
+      <p class="voca-score" id="resultScore"></p>
+      <ul class="voca-wrong-list" id="resultWrong"></ul>
+      <button class="voca-mode" id="retryBtn">다시 풀기</button>
+      <button class="voca-mode ghost" id="backToMenuBtn">처음으로</button>
+    </section>
+  </main>
+
+  <script src="../main.js"></script>
+  <script src="voca.js"></script>
+</body>
+</html>

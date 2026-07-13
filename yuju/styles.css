@@ -289,6 +289,182 @@ section {
   line-height: 1.5;
 }
 
+/* ── 스페인어 단어장 페이지 ── */
+.page-voca {
+  overflow-y: auto;
+}
+
+/* display 규칙이 hidden 속성을 덮어쓰지 않도록 */
+.voca [hidden] {
+  display: none !important;
+}
+
+.voca {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+  pointer-events: auto;
+}
+
+.voca-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.voca-status {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #c98ba3;
+  margin-bottom: 10px;
+}
+
+.voca-mode {
+  border: none;
+  border-radius: 999px;
+  padding: 14px;
+  background: #ff5a86;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.voca-mode:disabled {
+  opacity: 0.4;
+}
+
+.voca-mode.ghost {
+  background: rgba(255, 255, 255, 0.7);
+  color: #b9557d;
+  border: 1.5px solid #f0a8c0;
+}
+
+.voca-progress {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #c98ba3;
+  margin: 6px 0 12px;
+}
+
+.voca-card {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 18px;
+  padding: 26px 18px;
+  text-align: center;
+  box-shadow: 0 4px 18px rgba(233, 79, 124, 0.08);
+}
+
+.voca-word {
+  font-size: clamp(1.8rem, 8vw, 2.4rem);
+  color: #b9557d;
+  word-break: break-word;
+}
+
+.voca-hint {
+  margin-top: 12px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #6b2b41;
+  word-break: keep-all;
+}
+
+.voca-hint-btn {
+  margin-top: 14px;
+  border: 1.5px solid #f0a8c0;
+  border-radius: 999px;
+  padding: 6px 16px;
+  background: none;
+  color: #b9557d;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.voca-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.voca-option {
+  border: none;
+  border-radius: 14px;
+  padding: 13px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #6b2b41;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: left;
+  cursor: pointer;
+  word-break: keep-all;
+}
+
+.voca-option.correct {
+  background: #d3f2dd;
+  color: #1d7a43;
+}
+
+.voca-option.wrong {
+  background: #ffdce3;
+  color: #c22e55;
+}
+
+.voca-feedback {
+  text-align: center;
+  margin-top: 14px;
+  min-height: 1.4em;
+  color: #b9557d;
+}
+
+.voca-next {
+  display: block;
+  margin: 10px auto 0;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 30px;
+  background: #ff5a86;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.voca-result {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+}
+
+.voca-score {
+  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
+  font-size: 1.9rem;
+  color: #b9557d;
+}
+
+.voca-wrong-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.voca-wrong-list li {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 12px;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
