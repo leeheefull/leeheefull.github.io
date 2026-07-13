@@ -12,6 +12,7 @@ const statusEl = document.getElementById("vocaStatus");
 const modeAllBtn = document.getElementById("modeAll");
 const modeFailBtn = document.getElementById("modeFail");
 const progressEl = document.getElementById("quizProgress");
+const failBadgeEl = document.getElementById("failBadge");
 const wordEl = document.getElementById("quizWord");
 const hintEl = document.getElementById("quizHint");
 const hintBtn = document.getElementById("hintBtn");
@@ -106,6 +107,8 @@ function showQuestion() {
   const word = quiz.deck[quiz.index];
 
   progressEl.textContent = `${quiz.index + 1} / ${quiz.deck.length}`;
+  failBadgeEl.textContent = `${word.fail}번 틀렸어요`;
+  failBadgeEl.hidden = word.fail === 0;
   wordEl.textContent = word.spanish;
   hintEl.textContent = word.construction;
   hintEl.hidden = true;
