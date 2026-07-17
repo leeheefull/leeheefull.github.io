@@ -7,6 +7,15 @@ tech: ['Java', 'JSP', 'Spring Boot', 'MyBatis', 'MySQL', 'Redis', 'Maven', 'Jenk
 order: 1
 ---
 
+```mermaid
+flowchart LR
+    A["파트너 가입 요청"] --> B["사업자등록번호 검증<br/>공공 Open API"]
+    B -->|"검증 통과"| C["본인 인증"]
+    B -->|"검증 실패"| F["등록 차단"]
+    C --> D["Redis 인증 키 발급<br/>일정 시간 유효"]
+    D --> E["가입 완료"]
+```
+
 ## 배경
 
 - 파트너 회원가입에 악성 등록 시도가 발생하고 있었지만, 가입 시점의 검증 장치가 부족해 비정상 파트너가 시스템에 들어올 수 있는 상태였음

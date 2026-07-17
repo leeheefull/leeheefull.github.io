@@ -7,6 +7,16 @@ tech: ['Kotlin', 'Java', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL', 'Elast
 order: 4
 ---
 
+```mermaid
+flowchart LR
+    A["정산 수수료 플랫폼"] -->|"정산 API"| B["옵션 수수료 저장<br/>장애 대비 fallback"]
+    A -->|"Kafka 정책 변경 이벤트"| B
+    B --> C["여행자 가격 계산"]
+    B --> D["파트너/매니저 설정 화면"]
+    B --> E["배치 · 검색 인덱스"]
+    B --> F["CMS 가격/예약 전송"]
+```
+
 ## 배경
 
 - 기존 숙박 수수료는 파트너(숙소)당 단일 요율만 지원해, 상품별 차등 요율·프로모션별 정산 정책을 적용할 수 없었고 정산 오류 문의의 원인이 됨

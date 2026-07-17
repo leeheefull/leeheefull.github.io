@@ -7,6 +7,14 @@ tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'MySQL', 'Elasticsearch', 'React
 order: 6
 ---
 
+```mermaid
+flowchart LR
+    A["파트너 판매 정책 설정<br/>인원 요금 · 투숙일 제한 · CTA/CTD"] --> B["스테이넷 정책 엔진"]
+    B --> C["DB · 검색 인덱스 마이그레이션"]
+    B --> D["CMS 연동 반영"]
+    C --> E["여행자 검색 · 가격 노출"]
+```
+
 ## 배경
 
 - 직계약 숙소 플랫폼(스테이넷)의 판매 정책이 단순(객실당 고정 인원·고정가)해서, 호텔·리조트급 파트너와 글로벌 CMS가 요구하는 **인원별 요금, 투숙일 제한 같은 업계 표준 정책**을 수용할 수 없었음

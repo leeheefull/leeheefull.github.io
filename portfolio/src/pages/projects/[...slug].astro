@@ -38,6 +38,31 @@ const base = import.meta.env.BASE_URL;
   <article class="content">
     <Content />
   </article>
+
+  <script is:inline type="module">
+    const blocks = document.querySelectorAll(
+      'pre[data-language="mermaid"], pre:has(> code.language-mermaid)'
+    );
+    if (blocks.length) {
+      const { default: mermaid } = await import(
+        'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs'
+      );
+      mermaid.initialize({ startOnLoad: false, theme: 'neutral', fontFamily: 'inherit' });
+      let i = 0;
+      for (const pre of blocks) {
+        const source = pre.textContent ?? '';
+        const holder = document.createElement('div');
+        holder.className = 'mermaid-diagram';
+        pre.replaceWith(holder);
+        try {
+          const { svg } = await mermaid.render(`mmd-${i++}`, source.trim());
+          holder.innerHTML = svg;
+        } catch {
+          holder.remove();
+        }
+      }
+    }
+  </script>
 </Base>
 
 <style>
@@ -105,5 +130,20 @@ const base = import.meta.env.BASE_URL;
     border-radius: 4px;
     padding: 1px 5px;
     font-size: 0.85em;
+  }
+
+  .content :global(.mermaid-diagram) {
+    display: flex;
+    justify-content: center;
+    padding: 20px 12px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+
+  .content :global(.mermaid-diagram svg) {
+    max-width: 100%;
+    height: auto;
   }
 </style>

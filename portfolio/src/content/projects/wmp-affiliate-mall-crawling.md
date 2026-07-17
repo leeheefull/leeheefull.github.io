@@ -7,6 +7,14 @@ tech: ['Java', 'Spring Boot', 'JPA', 'MySQL', 'Redis', 'Gradle', 'AWS SQS', 'AWS
 order: 4
 ---
 
+```mermaid
+flowchart LR
+    A["쇼핑몰 홈페이지"] --> B["정적/동적 크롤링"]
+    B --> C["상품 상세 URL 추출"]
+    C --> D["Redis 캐시<br/>Write-back 전략"]
+    D -->|"최종 저장 시에만 write"| E["RDB"]
+```
+
 ## 배경
 
 - 제휴쇼핑몰 중 상품 피드(EP)를 제공하지 못하는 쇼핑몰은 상품을 노출할 방법이 없어, 크롤링으로 상품 데이터를 직접 수집하는 시스템이 필요했음

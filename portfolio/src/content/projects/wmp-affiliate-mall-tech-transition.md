@@ -7,6 +7,16 @@ tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'Node Express', 'MySQL', 'Gra
 order: 3
 ---
 
+```mermaid
+flowchart LR
+    A["Node.js 어드민/파트너<br/>API · Batch 리포 분리"] --> B["Kotlin Spring 멀티 모듈"]
+    B --> C["Domain"]
+    B --> D["API"]
+    B --> E["Batch"]
+    B --> F["Client"]
+    B --> G["RestDocs 테스트 문서화<br/>CloudWatch · Grafana 모니터링"]
+```
+
 ## 배경
 
 - 제휴쇼핑몰 어드민/파트너 서비스가 Node.js로 작성되어 팀 주력 스택과 달라 유지보수가 어려웠고, API 리포와 Batch 리포가 분리되어 같은 도메인 코드가 중복 관리되고 있었음

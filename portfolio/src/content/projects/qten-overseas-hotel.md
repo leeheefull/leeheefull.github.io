@@ -7,6 +7,15 @@ tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'MySQL', 'Redis', 'Feign Clie
 order: 2
 ---
 
+```mermaid
+flowchart LR
+    A["사용자"] --> B["호텔 조회 API"]
+    B --> C{"캐시<br/>로컬 + 글로벌 Redis"}
+    C -->|"hit"| D["즉시 응답"]
+    C -->|"miss"| E["연동사 API<br/>코루틴 병렬 호출"]
+    E --> D
+```
+
 ## 배경
 
 - 투어 서비스에 해외 호텔 상품 카테고리를 신설하면서, 외부 연동사의 호텔 데이터를 받아 전시·판매하는 시스템을 처음부터 구축해야 했음

@@ -7,6 +7,17 @@ tech: ['Kotlin', 'Spring Boot', 'Kafka', 'MySQL', 'Claude Code', 'AI Agent']
 order: 2
 ---
 
+```mermaid
+flowchart LR
+    A["공급사 연동 문서"] --> B["크롤링 · Markdown 변환"]
+    B --> C["AI 데이터 매핑"]
+    C --> D["AI 연동 코드 생성"]
+    D --> E["개발자 리팩토링"]
+    E --> F["테스트 검증"]
+    F --> G["Certification"]
+    G --> H["운영 배포"]
+```
+
 ## 배경
 
 - 직계약 숙소를 늘리려면 호텔이 이미 쓰고 있는 CMS(Channel Management System)와의 연동이 필수인데, 공급사마다 스펙 문서·인증 절차가 달라 연동 1건당 개발 기간이 길고 반복 작업이 많았음

@@ -7,6 +7,15 @@ tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL', 'Elasticsearch
 order: 10
 ---
 
+```mermaid
+flowchart LR
+    A["호텔스토리 CMS"] -->|"객실 · 요금 · 재고 동기화"| B["연동 서버"]
+    A -->|"예약 생성/취소 + 재시도 · API 로그"| B
+    B --> C["검색 인덱스 갱신"]
+    B --> D["GSA 판매 채널<br/>동기화 배치 · 판매중지 · 알림"]
+    C --> E["마이리얼트립 판매"]
+```
+
 ## 배경
 
 - 국내 중소형 숙소(펜션·풀빌라 등)를 직계약으로 확보하려면, 해당 시장 점유율이 높은 CMS인 호텔스토리와의 연동이 필요했음

@@ -7,6 +7,14 @@ tech: ['Java', 'Spring Boot', 'Logback', 'Slack Webhook API', 'ELK']
 order: 4
 ---
 
+```mermaid
+flowchart LR
+    A["애플리케이션 에러"] --> B["Logback"]
+    B --> C{"커스텀 필터<br/>노이즈 제거 · 레벨 정비"}
+    C -->|"즉각 대응 필요"| D["Slack 실시간 알림"]
+    C -->|"단순 에러"| E["로그만 기록"]
+```
+
 ## 배경
 
 - 에러 발생 시 담당자가 수동으로 메시지를 작성해 전송하고 있었고, 알림 전송 코드가 비즈니스 로직 곳곳에 섞여 있어 대응 지연과 코드 오염이 함께 발생했음

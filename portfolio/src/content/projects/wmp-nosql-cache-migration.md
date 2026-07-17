@@ -7,6 +7,12 @@ tech: ['Java', 'Spring Boot', 'MyBatis', 'MySQL', 'Redis', 'Couchbase', 'Maven',
 order: 2
 ---
 
+```mermaid
+flowchart LR
+    A["Couchbase<br/>사용 기한 만료"] -->|"배치 이관 36만 건"| B["이중 적재 운영<br/>Couchbase + Redis"]
+    B -->|"정합성 확인 후 기존 로직 제거"| C["Redis 단독 운영"]
+```
+
 ## 배경
 
 - 파트너 도메인 캐시로 쓰던 Couchbase의 사용 기한이 만료되어, 서비스 중단 없이 Redis로 캐시 저장소를 교체해야 했음

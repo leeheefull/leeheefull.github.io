@@ -7,6 +7,15 @@ tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'MySQL', 'Elasticsearch']
 order: 7
 ---
 
+```mermaid
+flowchart LR
+    A["한인민박 별도 시스템 (BNB)"] -->|"예약 · 가격 캘린더 통합"| B["스테이넷"]
+    A -->|"후기 이관 배치"| B
+    A -->|"네이버 EP 마이그레이션"| B
+    A -->|"리다이렉트 · 매핑 API"| B
+    B --> C["단일 직계약 숙소 플랫폼"]
+```
+
 ## 배경
 
 - 한인민박이 별도 시스템(BNB)으로 운영되어 숙박 도메인에 유사 기능이 중복 개발되고 있었고, 파트너 경험도 이원화되어 있었음
