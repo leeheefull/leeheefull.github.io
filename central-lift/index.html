@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중앙리프트</title>
+  <meta name="description" content="자동파워게이트 / 수직리프트게이트 전차동 리프트 특장 중앙리프트">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site"></header>
+
+  <!-- 히어로 슬라이더 -->
+  <section class="hero" id="hero">
+    <div class="slide active">
+      <img src="img/1.png" alt="">
+      <div class="caption"><h1 id="heroTitle1"></h1></div>
+    </div>
+    <div class="slide">
+      <img src="img/2.png" alt="">
+      <div class="caption"><h1 id="heroTitle2"></h1></div>
+    </div>
+    <div class="slide">
+      <img src="img/3.png" alt="">
+      <div class="caption"><h1 id="heroTitle3"></h1></div>
+    </div>
+    <div class="dots" id="heroDots"></div>
+  </section>
+
+  <!-- 인트로 -->
+  <section class="intro">
+    <div class="container grid">
+      <div>
+        <img src="img/Int_Ban_1.png" alt="" style="border-radius:10px">
+      </div>
+      <div>
+        <h1 id="introTitle"></h1>
+        <p class="eng" id="introEng"></p>
+        <p class="desc" id="introDesc"></p>
+        <a class="more" href="company.html">EXPLORE DETAILS →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section class="products">
+    <div class="container">
+      <h1 id="productsTitle">PRODUCTS</h1>
+      <div class="bar"></div>
+      <div class="boxes">
+        <a href="gallery.html?ca=수직형 리프트게이트">
+          <img src="img/M_Box_1.png" alt=""><h2>수직형 리프트게이트</h2>
+        </a>
+        <a href="gallery.html?ca=자동형 파워게이트">
+          <img src="img/M_Box_2.png" alt=""><h2>자동형 파워게이트</h2>
+        </a>
+        <a href="gallery.html?ca=슬라이딩 게이트">
+          <img src="img/M_Box_3.png" alt=""><h2>슬라이딩 게이트</h2>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about">
+    <div class="container">
+      <h1 id="aboutTitle">About <span class="accent">CENTER LIFT</span></h1>
+      <p id="aboutText"></p>
+      <div class="cards">
+        <a href="company.html">
+          <img src="img/Bottom_Ban_1.png" alt="">
+          <div class="label"><h2>회사소개</h2><span>more view +</span></div>
+        </a>
+        <a href="qa.html">
+          <img src="img/Bottom_Ban_2.png" alt="">
+          <div class="label"><h2>견적문의</h2><span>more view +</span></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="contact">
+    <div class="container">
+      <h1 id="contactTitle">CONTACT US</h1>
+      <div class="bar"></div>
+      <div class="items" id="contactItems"></div>
+    </div>
+  </section>
+
+  <footer class="site"></footer>
+
+  <script src="js/app.js"></script>
+  <script>
+    // 히어로 슬라이더
+    const slides = document.querySelectorAll(".hero .slide");
+    const dotsBox = document.getElementById("heroDots");
+    let cur = 0;
+    slides.forEach((_, i) => {
+      const b = document.createElement("button");
+      if (i === 0) b.classList.add("on");
+      b.addEventListener("click", () => show(i));
+      dotsBox.append(b);
+    });
+    function show(i) {
+      slides[cur].classList.remove("active");
+      dotsBox.children[cur].classList.remove("on");
+      cur = i;
+      slides[cur].classList.add("active");
+      dotsBox.children[cur].classList.add("on");
+    }
+    setInterval(() => show((cur + 1) % slides.length), 4500);
+
+    // 시트에서 홈 문구 로드
+    (async () => {
+      try {
+        const home = await readKv("home");
+        for (const n of [1, 2, 3]) {
+          document.getElementById("heroTitle" + n).textContent =
+            (home.hero_title || "").replace(" 전차동", "\n전차동");
+        }
+        document.getElementById("introTitle").textContent = home.hero_sub || "";
+        document.getElementById("introEng").textContent = home.about_sub || "";
+        document.getElementById("introDesc").textContent = home.about_text || "";
+        document.getElementById("productsTitle").textContent = home.products_title || "PRODUCTS";
+        document.getElementById("aboutText").textContent = home.about_text || "";
+
+        const items = [
+          ["CALL", (home.contact_call || "").replace("CALL. ", "")],
+          ["FAX", (home.contact_fax || "").replace("Fax. ", "")],
+          ["E-MAIL", (home.contact_email || "").replace("E-MAIL. ", "")],
+          ["LOCATION", (home.contact_location || "").replace("LOCATION. ", "")],
+        ];
+        document.getElementById("contactItems").innerHTML = items
+          .map(([k, v]) => `<div><h3>${k}</h3><p>${esc(v)}</p></div>`)
+          .join("");
+      } catch (e) { /* 시트 로드 실패 시 정적 콘텐츠만 노출 */ }
+    })();
+  </script>
+</body>
+</html>

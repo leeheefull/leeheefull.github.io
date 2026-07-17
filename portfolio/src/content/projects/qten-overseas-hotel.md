@@ -4,7 +4,7 @@ company: '큐텐테크놀로지'
 period: '2023.10 - 2024.04'
 summary: '해외 호텔 상품 판매 시스템 신규 개발, 캐시·비동기 도입으로 조회 latency 대폭 개선'
 tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'MySQL', 'Redis', 'Feign Client', 'Gradle', 'AWS']
-order: 1
+order: 2
 ---
 
 - 해외 호텔 상품 판매를 위한 시스템 개발

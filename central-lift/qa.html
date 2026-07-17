@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>견적문의 · 중앙리프트</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site"></header>
+
+  <div class="sub-banner"><h1>견적문의</h1><p>ESTIMATE</p></div>
+
+  <main class="page">
+    <div class="container">
+      <form class="form-card" id="qaForm" style="margin:0 0 46px">
+        <h2>견적 문의하기</h2>
+        <div class="row">
+          <label>성함<input name="name" required maxlength="20"></label>
+          <label>연락처<input name="phone" required maxlength="20" placeholder="010-0000-0000"></label>
+        </div>
+        <div class="row">
+          <label>이메일 (선택)<input name="email" type="email" maxlength="50"></label>
+          <label>제목<input name="subject" required maxlength="100" placeholder="예) 1t 카고 리프트게이트 견적 요청"></label>
+        </div>
+        <label>내용<textarea name="content" rows="5" required maxlength="2000"
+          placeholder="차종과 원하시는 제품(수직형/자동형/슬라이딩)을 알려주세요."></textarea></label>
+        <label class="check"><input type="checkbox" name="secret" checked>비밀글로 문의하기</label>
+        <button class="btn accent" type="submit" id="qaSubmit">문의하기</button>
+        <p class="form-status" id="qaStatus"></p>
+      </form>
+
+      <h2 style="color:var(--navy);margin-bottom:14px">문의 내역</h2>
+      <p class="board-status" id="status">불러오는 중...</p>
+      <ul class="post-list" id="list"></ul>
+    </div>
+  </main>
+
+  <footer class="site"></footer>
+  <script src="js/app.js"></script>
+  <script>
+    (async () => {
+      let rows;
+      try {
+        rows = await readTable("qa");
+      } catch {
+        document.getElementById("status").textContent = "목록을 불러오지 못했습니다.";
+        return;
+      }
+      rows.sort((a, b) => Number(b.wr_id) - Number(a.wr_id));
+      document.getElementById("status").textContent = rows.length ? "" : "등록된 문의가 없습니다.";
+      document.getElementById("list").innerHTML = rows.map((r, i) => {
+        const secret = String(r.secret).toUpperCase() === "TRUE";
+        return `<li>
+          <span class="no">${rows.length - i}</span>
+          <span class="subject">${secret ? '<span class="lock">🔒</span> 비밀글입니다.' : esc(r.subject)}</span>
+          <span class="who">${esc(maskName(r.name))}</span>
+          <span class="when">${esc((r.created_at || "").split(" ")[0])}</span>
+        </li>`;
+      }).join("");
+    })();
+
+    document.getElementById("qaForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = document.getElementById("qaSubmit");
+      const st = document.getElementById("qaStatus");
+      btn.disabled = true;
+      st.textContent = "접수 중...";
+      try {
+        await submitForm({
+          action: "qa",
+          name: f.name.value.trim(),
+          phone: f.phone.value.trim(),
+          email: f.email.value.trim(),
+          subject: f.subject.value.trim(),
+          content: f.content.value.trim(),
+          secret: f.secret.checked,
+        });
+        st.textContent = "문의가 접수되었습니다. 빠르게 연락드리겠습니다!";
+        f.reset();
+        setTimeout(() => location.reload(), 1800);
+      } catch {
+        st.textContent = "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A/S신청 · 중앙리프트</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site"></header>
+
+  <div class="sub-banner"><h1>A/S신청</h1><p>AFTER SERVICE</p></div>
+
+  <main class="page">
+    <div class="container">
+      <div id="listView">
+        <p class="board-status" id="status">불러오는 중...</p>
+        <ul class="post-list" id="list"></ul>
+      </div>
+
+      <div id="postView" class="post-view" hidden>
+        <h1 class="title" id="pvTitle"></h1>
+        <p class="info" id="pvInfo"></p>
+        <div class="content" id="pvContent"></div>
+        <div class="imgs" id="pvImgs"></div>
+        <a class="btn ghost" href="notice.html">← 목록으로</a>
+      </div>
+
+      <form class="form-card" id="asForm">
+        <h2>A/S 신청하기</h2>
+        <div class="row">
+          <label>성함<input name="author" required maxlength="20"></label>
+          <label>제목<input name="title" required maxlength="100" placeholder="예) 리프트 A/S 요청"></label>
+        </div>
+        <label>내용<textarea name="content" rows="5" required maxlength="2000"
+          placeholder="차종, 증상, 연락처를 함께 남겨주시면 빠르게 연락드립니다."></textarea></label>
+        <button class="btn accent" type="submit" id="asSubmit">신청하기</button>
+        <p class="form-status" id="asStatus"></p>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site"></footer>
+  <script src="js/app.js"></script>
+  <script>
+    (async () => {
+      let rows;
+      try {
+        rows = await readTable("notice");
+      } catch {
+        document.getElementById("status").textContent = "목록을 불러오지 못했습니다.";
+        return;
+      }
+      rows.sort((a, b) => Number(b.wr_id) - Number(a.wr_id));
+
+      const id = qs("id");
+      if (id) {
+        const p = rows.find((r) => r.wr_id === id);
+        if (p) {
+          document.getElementById("listView").hidden = true;
+          document.getElementById("postView").hidden = false;
+          document.getElementById("pvTitle").textContent = p.title;
+          document.getElementById("pvInfo").textContent =
+            `${maskName(p.author)} · ${p.created_at || ""}`;
+          document.getElementById("pvContent").textContent = p.content;
+          document.getElementById("pvImgs").innerHTML = (p.images || "")
+            .split("\n").filter(Boolean)
+            .map((u) => `<img src="${esc(u)}" alt="" loading="lazy">`).join("");
+          return;
+        }
+      }
+
+      document.getElementById("status").textContent = rows.length ? "" : "등록된 글이 없습니다.";
+      document.getElementById("list").innerHTML = rows.map((r, i) => `
+        <li>
+          <span class="no">${rows.length - i}</span>
+          <a class="subject" href="notice.html?id=${r.wr_id}">${esc(r.title)}</a>
+          <span class="who">${esc(maskName(r.author))}</span>
+          <span class="when">${esc((r.created_at || "").split(" ")[0])}</span>
+        </li>`).join("");
+    })();
+
+    // A/S 신청 폼
+    document.getElementById("asForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      const btn = document.getElementById("asSubmit");
+      const st = document.getElementById("asStatus");
+      btn.disabled = true;
+      st.textContent = "접수 중...";
+      try {
+        await submitForm({
+          action: "as",
+          title: f.title.value.trim(),
+          author: f.author.value.trim(),
+          content: f.content.value.trim(),
+        });
+        st.textContent = "접수되었습니다. 빠르게 연락드리겠습니다!";
+        f.reset();
+        setTimeout(() => location.reload(), 1800);
+      } catch {
+        st.textContent = "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

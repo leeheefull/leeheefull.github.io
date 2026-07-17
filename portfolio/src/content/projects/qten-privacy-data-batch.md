@@ -4,7 +4,7 @@ company: '큐텐테크놀로지'
 period: '2024.05 - 2024.06'
 summary: '보유기간이 지난 개인정보·로그 데이터 7,400만 건을 무중단으로 처리하는 배치 개발'
 tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'MySQL', 'Gradle', 'AWS']
-order: 2
+order: 1
 ---
 
 - 투어 서비스에서 보유기간이 지난 개인정보와 로그 데이터를 수정 및 삭제하는 배치 프로세스 개발

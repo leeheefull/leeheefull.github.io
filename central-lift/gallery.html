@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>제품소개 · 중앙리프트</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site"></header>
+
+  <div class="sub-banner"><h1>제품소개</h1><p>PRODUCTS</p></div>
+
+  <main class="page">
+    <div class="container">
+      <div class="cat-tabs" id="catTabs"></div>
+      <div id="listView">
+        <p class="board-status" id="status">불러오는 중...</p>
+        <div class="gallery-grid" id="grid"></div>
+      </div>
+      <div id="postView" class="post-view" hidden>
+        <p class="info" id="pvCat"></p>
+        <h1 class="title" id="pvTitle"></h1>
+        <div class="content" id="pvContent" style="margin-top:18px"></div>
+        <div class="imgs" id="pvImgs"></div>
+        <a class="btn ghost" href="gallery.html">← 목록으로</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site"></footer>
+  <script src="js/app.js"></script>
+  <script>
+    const CATS = ["전체", "수직형 리프트게이트", "자동형 파워게이트", "슬라이딩 게이트"];
+
+    (async () => {
+      const ca = qs("ca") || "전체";
+      const id = qs("id");
+
+      document.getElementById("catTabs").innerHTML = CATS.map((c) =>
+        `<a href="gallery.html${c === "전체" ? "" : "?ca=" + encodeURIComponent(c)}"
+            class="${c === ca ? "on" : ""}">${c}</a>`).join("");
+
+      let rows;
+      try {
+        rows = await readTable("gallery");
+      } catch {
+        document.getElementById("status").textContent = "목록을 불러오지 못했습니다.";
+        return;
+      }
+
+      if (id) {
+        const p = rows.find((r) => r.wr_id === id);
+        if (p) {
+          document.getElementById("listView").hidden = true;
+          const pv = document.getElementById("postView");
+          pv.hidden = false;
+          document.getElementById("pvCat").textContent = p.category;
+          document.getElementById("pvTitle").textContent = p.title;
+          document.getElementById("pvContent").textContent = p.content;
+          document.getElementById("pvImgs").innerHTML = (p.images || "")
+            .split("\n").filter(Boolean)
+            .map((u) => `<img src="${esc(u)}" alt="" loading="lazy">`).join("");
+          return;
+        }
+      }
+
+      const list = ca === "전체" ? rows : rows.filter((r) => r.category === ca);
+      document.getElementById("status").textContent =
+        list.length ? "" : "등록된 제품이 없습니다.";
+      document.getElementById("grid").innerHTML = list.map((r) => {
+        const thumb = (r.images || "").split("\n")[0] || "img/logo_empty.png";
+        return `<a class="card" href="gallery.html?id=${r.wr_id}">
+          <img class="thumb" src="${esc(thumb)}" alt="" loading="lazy">
+          <div class="meta"><div class="cat">${esc(r.category)}</div><h2>${esc(r.title)}</h2></div>
+        </a>`;
+      }).join("");
+    })();
+  </script>
+</body>
+</html>
