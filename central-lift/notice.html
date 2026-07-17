@@ -9,13 +9,20 @@
 <body>
   <header class="site"></header>
 
-  <div class="sub-banner"><h1>A/S신청</h1><p>AFTER SERVICE</p></div>
+  <div class="sub-banner"></div>
 
   <main class="page">
     <div class="container">
       <div id="listView">
+        <p class="total-line" id="totalLine"></p>
         <p class="board-status" id="status">불러오는 중...</p>
-        <ul class="post-list" id="list"></ul>
+        <table class="post-table" id="table" hidden>
+          <thead><tr><th style="width:70px">번호</th><th>제목</th><th style="width:110px">작성자</th><th style="width:120px">날짜</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="board-foot">
+          <button class="btn accent" id="writeBtn">A/S 신청하기</button>
+        </div>
       </div>
 
       <div id="postView" class="post-view" hidden>
@@ -26,7 +33,7 @@
         <a class="btn ghost" href="notice.html">← 목록으로</a>
       </div>
 
-      <form class="form-card" id="asForm">
+      <form class="form-card" id="asForm" hidden>
         <h2>A/S 신청하기</h2>
         <div class="row">
           <label>성함<input name="author" required maxlength="20"></label>
@@ -43,6 +50,16 @@
   <footer class="site"></footer>
   <script src="js/app.js"></script>
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSubBanner("AFTER SERVICE", "A/S신청");
+    });
+
+    document.getElementById("writeBtn").addEventListener("click", () => {
+      const f = document.getElementById("asForm");
+      f.hidden = !f.hidden;
+      if (!f.hidden) f.scrollIntoView({ behavior: "smooth" });
+    });
+
     (async () => {
       let rows;
       try {
@@ -70,17 +87,18 @@
         }
       }
 
+      document.getElementById("totalLine").innerHTML = `Total <b>${rows.length}건</b> 1 페이지`;
       document.getElementById("status").textContent = rows.length ? "" : "등록된 글이 없습니다.";
-      document.getElementById("list").innerHTML = rows.map((r, i) => `
-        <li>
-          <span class="no">${rows.length - i}</span>
-          <a class="subject" href="notice.html?id=${r.wr_id}">${esc(r.title)}</a>
-          <span class="who">${esc(maskName(r.author))}</span>
-          <span class="when">${esc((r.created_at || "").split(" ")[0])}</span>
-        </li>`).join("");
+      if (rows.length) document.getElementById("table").hidden = false;
+      document.getElementById("tbody").innerHTML = rows.map((r, i) => `
+        <tr>
+          <td>${rows.length - i}</td>
+          <td class="subject"><a href="notice.html?id=${r.wr_id}">${esc(r.title)}</a></td>
+          <td>${esc(maskName(r.author))}</td>
+          <td>${esc((r.created_at || "").split(" ")[0])}</td>
+        </tr>`).join("");
     })();
 
-    // A/S 신청 폼
     document.getElementById("asForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const f = e.target;

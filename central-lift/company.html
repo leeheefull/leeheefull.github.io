@@ -9,27 +9,41 @@
 <body>
   <header class="site"></header>
 
-  <div class="sub-banner"><h1>회사소개</h1><p>COMPANY</p></div>
+  <div class="sub-banner"></div>
 
   <main class="page">
-    <div class="container company-intro">
-      <img class="banner" src="img/Int_Ban_1.png" alt="">
-      <div class="text" id="introBody"><p class="board-status">불러오는 중...</p></div>
+    <div class="container company-grid">
+      <div><img src="img/Int_Ban_1.png" alt=""></div>
+      <div class="text" id="introText">
+        <p class="board-status">불러오는 중...</p>
+      </div>
     </div>
   </main>
 
   <footer class="site"></footer>
   <script src="js/app.js"></script>
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSubBanner("COMPANY", "회사소개", [
+        ["회사소개", "company.html", true],
+        ["오시는길", "map.html", false],
+      ]);
+    });
+
     (async () => {
-      const el = document.getElementById("introBody");
+      const el = document.getElementById("introText");
       try {
         const pages = await readTable("page");
         const p = pages.find((r) => r.page_id === "company_intro");
-        el.innerHTML = "";
-        const div = document.createElement("div");
-        div.textContent = p ? p.content : "준비 중입니다.";
-        el.append(div);
+        const raw = p ? p.content : "";
+        // 원본 레이아웃: 제목 / 빨간 슬로건 / 본문
+        const sloganMatch = raw.match(/"([\s\S]*?)"/);
+        const slogan = sloganMatch ? sloganMatch[1].replace(/\n/g, " ").trim() : "";
+        const body = raw.slice(raw.indexOf('"', raw.indexOf('"') + 1) + 1).trim();
+        el.innerHTML = `
+          <h1>안녕하십니까,<br>중앙리프트 입니다.</h1>
+          ${slogan ? `<p class="slogan">"${esc(slogan)}"</p>` : ""}
+          <div class="body">${esc(body || raw)}</div>`;
       } catch {
         el.textContent = "내용을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.";
       }

@@ -9,12 +9,13 @@
 <body>
   <header class="site"></header>
 
-  <div class="sub-banner"><h1>제품소개</h1><p>PRODUCTS</p></div>
+  <div class="sub-banner"></div>
 
   <main class="page">
     <div class="container">
       <div class="cat-tabs" id="catTabs"></div>
       <div id="listView">
+        <p class="total-line" id="totalLine"></p>
         <p class="board-status" id="status">불러오는 중...</p>
         <div class="gallery-grid" id="grid"></div>
       </div>
@@ -31,14 +32,18 @@
   <footer class="site"></footer>
   <script src="js/app.js"></script>
   <script>
-    const CATS = ["전체", "수직형 리프트게이트", "자동형 파워게이트", "슬라이딩 게이트"];
+    const CATS = ["수직형 리프트게이트", "자동형 파워게이트", "슬라이딩 게이트", "특수형 리프트"];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSubBanner("PRODUCTS", "제품소개");
+    });
 
     (async () => {
-      const ca = qs("ca") || "전체";
+      const ca = qs("ca");
       const id = qs("id");
 
       document.getElementById("catTabs").innerHTML = CATS.map((c) =>
-        `<a href="gallery.html${c === "전체" ? "" : "?ca=" + encodeURIComponent(c)}"
+        `<a href="gallery.html?ca=${encodeURIComponent(c)}"
             class="${c === ca ? "on" : ""}">${c}</a>`).join("");
 
       let rows;
@@ -65,14 +70,15 @@
         }
       }
 
-      const list = ca === "전체" ? rows : rows.filter((r) => r.category === ca);
+      const list = ca ? rows.filter((r) => r.category === ca) : rows;
+      document.getElementById("totalLine").innerHTML = `Total <b>${list.length}건</b> 1 페이지`;
       document.getElementById("status").textContent =
         list.length ? "" : "등록된 제품이 없습니다.";
       document.getElementById("grid").innerHTML = list.map((r) => {
         const thumb = (r.images || "").split("\n")[0] || "img/logo_empty.png";
         return `<a class="card" href="gallery.html?id=${r.wr_id}">
           <img class="thumb" src="${esc(thumb)}" alt="" loading="lazy">
-          <div class="meta"><div class="cat">${esc(r.category)}</div><h2>${esc(r.title)}</h2></div>
+          <div class="meta"><span class="cat">[${esc(r.category)}]</span><h2>${esc(r.title)}</h2></div>
         </a>`;
       }).join("");
     })();

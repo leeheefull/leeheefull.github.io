@@ -9,7 +9,7 @@
 <body>
   <header class="site"></header>
 
-  <div class="sub-banner"><h1>오시는길</h1><p>LOCATION</p></div>
+  <div class="sub-banner"></div>
 
   <main class="page">
     <div class="container">
@@ -34,5 +34,13 @@
 
   <footer class="site"></footer>
   <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSubBanner("LOCATION", "오시는길", [
+        ["회사소개", "company.html", false],
+        ["오시는길", "map.html", true],
+      ]);
+    });
+  </script>
 </body>
 </html>

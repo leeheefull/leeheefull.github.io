@@ -9,11 +9,21 @@
 <body>
   <header class="site"></header>
 
-  <div class="sub-banner"><h1>견적문의</h1><p>ESTIMATE</p></div>
+  <div class="sub-banner"></div>
 
   <main class="page">
     <div class="container">
-      <form class="form-card" id="qaForm" style="margin:0 0 46px">
+      <p class="total-line" id="totalLine"></p>
+      <p class="board-status" id="status">불러오는 중...</p>
+      <table class="post-table" id="table" hidden>
+        <thead><tr><th style="width:120px">성명</th><th>제목</th><th style="width:120px">날짜</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="board-foot">
+        <button class="btn accent" id="writeBtn">글쓰기</button>
+      </div>
+
+      <form class="form-card" id="qaForm" hidden>
         <h2>견적 문의하기</h2>
         <div class="row">
           <label>성함<input name="name" required maxlength="20"></label>
@@ -24,21 +34,27 @@
           <label>제목<input name="subject" required maxlength="100" placeholder="예) 1t 카고 리프트게이트 견적 요청"></label>
         </div>
         <label>내용<textarea name="content" rows="5" required maxlength="2000"
-          placeholder="차종과 원하시는 제품(수직형/자동형/슬라이딩)을 알려주세요."></textarea></label>
+          placeholder="차종과 원하시는 제품(수직형/자동형/슬라이딩/특수형)을 알려주세요."></textarea></label>
         <label class="check"><input type="checkbox" name="secret" checked>비밀글로 문의하기</label>
         <button class="btn accent" type="submit" id="qaSubmit">문의하기</button>
         <p class="form-status" id="qaStatus"></p>
       </form>
-
-      <h2 style="color:var(--navy);margin-bottom:14px">문의 내역</h2>
-      <p class="board-status" id="status">불러오는 중...</p>
-      <ul class="post-list" id="list"></ul>
     </div>
   </main>
 
   <footer class="site"></footer>
   <script src="js/app.js"></script>
   <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      renderSubBanner("ESTIMATE", "견적문의");
+    });
+
+    document.getElementById("writeBtn").addEventListener("click", () => {
+      const f = document.getElementById("qaForm");
+      f.hidden = !f.hidden;
+      if (!f.hidden) f.scrollIntoView({ behavior: "smooth" });
+    });
+
     (async () => {
       let rows;
       try {
@@ -48,15 +64,16 @@
         return;
       }
       rows.sort((a, b) => Number(b.wr_id) - Number(a.wr_id));
+      document.getElementById("totalLine").innerHTML = `Total <b>${rows.length}건</b> 1 페이지`;
       document.getElementById("status").textContent = rows.length ? "" : "등록된 문의가 없습니다.";
-      document.getElementById("list").innerHTML = rows.map((r, i) => {
+      if (rows.length) document.getElementById("table").hidden = false;
+      document.getElementById("tbody").innerHTML = rows.map((r) => {
         const secret = String(r.secret).toUpperCase() === "TRUE";
-        return `<li>
-          <span class="no">${rows.length - i}</span>
-          <span class="subject">${secret ? '<span class="lock">🔒</span> 비밀글입니다.' : esc(r.subject)}</span>
-          <span class="who">${esc(maskName(r.name))}</span>
-          <span class="when">${esc((r.created_at || "").split(" ")[0])}</span>
-        </li>`;
+        return `<tr>
+          <td>${esc(maskName(r.name))}</td>
+          <td class="subject">${secret ? '<span class="lock">🔒</span> ' : ""}${esc(r.subject)}</td>
+          <td>${esc((r.created_at || "").split(" ")[0])}</td>
+        </tr>`;
       }).join("");
     })();
 
