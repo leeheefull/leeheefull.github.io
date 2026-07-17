@@ -675,5 +675,44 @@ footer.site .ft-login:hover { border-color: #fff; color: #fff; }
   .company-grid { grid-template-columns: 1fr; }
 }
 
+/* 비밀글 게이트 */
+.secret-gate {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 40px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.secret-gate p { color: var(--muted); margin-bottom: 16px; }
+
+.secret-gate .gate-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.secret-gate input {
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 13px;
+  font-family: inherit;
+  width: 220px;
+}
+
+/* 첨부파일 */
+.file-list { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 24px; }
+
+.file-list a {
+  display: inline-block;
+  color: #2f6fe4;
+  font-size: 0.92rem;
+}
+
+.file-list a:hover { text-decoration: underline; }
+
+.post-view .links a { color: #2f6fe4; display: block; font-size: 0.92rem; word-break: break-all; }
+
 /* 약관류 */
 .terms-body { white-space: pre-line; color: #444; font-size: 0.95rem; }

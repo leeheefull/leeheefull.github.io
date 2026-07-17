@@ -62,6 +62,66 @@ async function submitForm(payload) {
   });
 }
 
+// SHA-256 해시 (비밀번호는 해시로만 저장/비교)
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// 첨부파일 → base64 payload (합계 용량 제한)
+async function encodeFiles(fileList, maxTotalMB) {
+  const files = [...fileList].filter((f) => f.size > 0);
+  const total = files.reduce((s, f) => s + f.size, 0);
+  if (total > maxTotalMB * 1024 * 1024) {
+    throw new Error(`첨부파일 용량은 총 ${maxTotalMB}MB 이하만 가능합니다.`);
+  }
+  return Promise.all(files.map((f) => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res({ name: f.name, type: f.type || "application/octet-stream",
+                           data: r.result.split(",")[1] });
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  })));
+}
+
+// 비밀글 게이트: 저장된 해시와 입력 비밀번호 비교
+function renderSecretGate(container, passwordHash, onPass) {
+  container.innerHTML = `
+    <div class="secret-gate">
+      <p>🔒 비밀글입니다. 비밀번호를 입력해주세요.</p>
+      <div class="gate-row">
+        <input type="password" id="gatePw" placeholder="비밀번호">
+        <button class="btn" id="gateBtn">확인</button>
+      </div>
+      <p class="form-status" id="gateStatus"></p>
+    </div>`;
+  const check = async () => {
+    const pw = container.querySelector("#gatePw").value;
+    if (!pw) return;
+    if (passwordHash && (await sha256(pw)) === passwordHash) {
+      onPass();
+    } else {
+      container.querySelector("#gateStatus").textContent =
+        passwordHash ? "비밀번호가 일치하지 않습니다." : "이 글은 열람할 수 없습니다.";
+    }
+  };
+  container.querySelector("#gateBtn").addEventListener("click", check);
+  container.querySelector("#gatePw").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") check();
+  });
+}
+
+// 첨부파일 목록 렌더링
+function renderFiles(urls) {
+  const list = (urls || "").split("\n").filter(Boolean);
+  if (!list.length) return "";
+  return `<div class="file-list">` + list.map((u, i) => {
+    const name = decodeURIComponent((u.split("|")[1] || `첨부파일 ${i + 1}`));
+    const url = u.split("|")[0];
+    return `<a href="${esc(url)}" target="_blank" rel="noopener">📎 ${esc(name)}</a>`;
+  }).join("") + `</div>`;
+}
+
 function maskName(name) {
   if (!name) return "";
   if (name.includes("*")) return name;

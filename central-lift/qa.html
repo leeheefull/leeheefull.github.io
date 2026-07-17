@@ -13,28 +13,45 @@
 
   <main class="page">
     <div class="container">
-      <p class="total-line" id="totalLine"></p>
-      <p class="board-status" id="status">불러오는 중...</p>
-      <table class="post-table" id="table" hidden>
-        <thead><tr><th style="width:120px">성명</th><th>제목</th><th style="width:120px">날짜</th></tr></thead>
-        <tbody id="tbody"></tbody>
-      </table>
-      <div class="board-foot">
-        <button class="btn accent" id="writeBtn">글쓰기</button>
+      <div id="listView">
+        <p class="total-line" id="totalLine"></p>
+        <p class="board-status" id="status">불러오는 중...</p>
+        <table class="post-table" id="table" hidden>
+          <thead><tr><th style="width:120px">성명</th><th>제목</th><th style="width:120px">날짜</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="board-foot">
+          <button class="btn accent" id="writeBtn">글쓰기</button>
+        </div>
       </div>
 
+      <div id="postView" class="post-view" hidden>
+        <h1 class="title" id="pvTitle"></h1>
+        <p class="info" id="pvInfo"></p>
+        <div id="pvGate"></div>
+        <div id="pvBody" hidden>
+          <div class="content" id="pvContent"></div>
+          <div id="pvFiles"></div>
+        </div>
+        <a class="btn ghost" href="qa.html">← 목록으로</a>
+      </div>
+
+      <!-- 원본 폼 필드: 이름* 비밀번호* 이메일 제목* 연락처* 문의사항 파일 -->
       <form class="form-card" id="qaForm" hidden>
         <h2>견적 문의하기</h2>
         <div class="row">
-          <label>성함<input name="name" required maxlength="20"></label>
-          <label>연락처<input name="phone" required maxlength="20" placeholder="010-0000-0000"></label>
+          <label>이름 *<input name="name" required maxlength="20"></label>
+          <label>비밀번호 *<input name="password" type="password" required maxlength="30"
+            placeholder="글 확인 시 사용할 비밀번호"></label>
         </div>
         <div class="row">
-          <label>이메일 (선택)<input name="email" type="email" maxlength="50"></label>
-          <label>제목<input name="subject" required maxlength="100" placeholder="예) 1t 카고 리프트게이트 견적 요청"></label>
+          <label>연락처 *<input name="phone" required maxlength="20" placeholder="010-0000-0000"></label>
+          <label>이메일<input name="email" type="email" maxlength="50"></label>
         </div>
-        <label>내용<textarea name="content" rows="5" required maxlength="2000"
+        <label>제목 *<input name="subject" required maxlength="100" placeholder="예) 1t 카고 리프트게이트 견적 요청"></label>
+        <label>문의사항<textarea name="content" rows="5" maxlength="2000"
           placeholder="차종과 원하시는 제품(수직형/자동형/슬라이딩/특수형)을 알려주세요."></textarea></label>
+        <label>첨부파일 (최대 2개, 총 8MB)<input name="files" type="file" multiple></label>
         <label class="check"><input type="checkbox" name="secret" checked>비밀글로 문의하기</label>
         <button class="btn accent" type="submit" id="qaSubmit">문의하기</button>
         <p class="form-status" id="qaStatus"></p>
@@ -55,6 +72,29 @@
       if (!f.hidden) f.scrollIntoView({ behavior: "smooth" });
     });
 
+    function showPost(p) {
+      document.getElementById("listView").hidden = true;
+      document.getElementById("postView").hidden = false;
+      document.getElementById("pvTitle").textContent = p.subject;
+      document.getElementById("pvInfo").textContent =
+        `${maskName(p.name)} · ${p.created_at || ""}`;
+
+      const reveal = () => {
+        document.getElementById("pvGate").innerHTML = "";
+        document.getElementById("pvBody").hidden = false;
+        document.getElementById("pvContent").textContent =
+          [p.content, p.phone && `연락처 : ${p.phone}`, p.email && `이메일 : ${p.email}`]
+            .filter(Boolean).join("\n\n");
+        document.getElementById("pvFiles").innerHTML = renderFiles(p.files);
+      };
+
+      if (String(p.secret).toUpperCase() === "TRUE") {
+        renderSecretGate(document.getElementById("pvGate"), p.password || "", reveal);
+      } else {
+        reveal();
+      }
+    }
+
     (async () => {
       let rows;
       try {
@@ -64,6 +104,13 @@
         return;
       }
       rows.sort((a, b) => Number(b.wr_id) - Number(a.wr_id));
+
+      const id = qs("id");
+      if (id) {
+        const p = rows.find((r) => r.wr_id === id);
+        if (p) return showPost(p);
+      }
+
       document.getElementById("totalLine").innerHTML = `Total <b>${rows.length}건</b> 1 페이지`;
       document.getElementById("status").textContent = rows.length ? "" : "등록된 문의가 없습니다.";
       if (rows.length) document.getElementById("table").hidden = false;
@@ -71,7 +118,7 @@
         const secret = String(r.secret).toUpperCase() === "TRUE";
         return `<tr>
           <td>${esc(maskName(r.name))}</td>
-          <td class="subject">${secret ? '<span class="lock">🔒</span> ' : ""}${esc(r.subject)}</td>
+          <td class="subject"><a href="qa.html?id=${r.wr_id}">${secret ? '<span class="lock">🔒</span> ' : ""}${esc(r.subject)}</a></td>
           <td>${esc((r.created_at || "").split(" ")[0])}</td>
         </tr>`;
       }).join("");
@@ -85,6 +132,8 @@
       btn.disabled = true;
       st.textContent = "접수 중...";
       try {
+        if (f.files.files.length > 2) throw new Error("첨부파일은 최대 2개까지 가능합니다.");
+        const files = await encodeFiles(f.files.files, 8);
         await submitForm({
           action: "qa",
           name: f.name.value.trim(),
@@ -92,13 +141,15 @@
           email: f.email.value.trim(),
           subject: f.subject.value.trim(),
           content: f.content.value.trim(),
+          password: await sha256(f.password.value),
           secret: f.secret.checked,
+          files,
         });
         st.textContent = "문의가 접수되었습니다. 빠르게 연락드리겠습니다!";
         f.reset();
         setTimeout(() => location.reload(), 1800);
-      } catch {
-        st.textContent = "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
+      } catch (err) {
+        st.textContent = err.message || "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
       } finally {
         btn.disabled = false;
       }

@@ -28,19 +28,37 @@
       <div id="postView" class="post-view" hidden>
         <h1 class="title" id="pvTitle"></h1>
         <p class="info" id="pvInfo"></p>
-        <div class="content" id="pvContent"></div>
-        <div class="imgs" id="pvImgs"></div>
+        <div id="pvGate"></div>
+        <div id="pvBody" hidden>
+          <div class="content" id="pvContent"></div>
+          <div class="links" id="pvLinks"></div>
+          <div id="pvFiles"></div>
+          <div class="imgs" id="pvImgs"></div>
+        </div>
         <a class="btn ghost" href="notice.html">← 목록으로</a>
       </div>
 
+      <!-- 원본 폼 필드: 이름* 비밀번호* 이메일 홈페이지 제목* 내용 링크#1 링크#2 파일 -->
       <form class="form-card" id="asForm" hidden>
         <h2>A/S 신청하기</h2>
         <div class="row">
-          <label>성함<input name="author" required maxlength="20"></label>
-          <label>제목<input name="title" required maxlength="100" placeholder="예) 리프트 A/S 요청"></label>
+          <label>이름 *<input name="author" required maxlength="20"></label>
+          <label>비밀번호 *<input name="password" type="password" required maxlength="30"
+            placeholder="글 확인 시 사용할 비밀번호"></label>
         </div>
-        <label>내용<textarea name="content" rows="5" required maxlength="2000"
+        <div class="row">
+          <label>이메일<input name="email" type="email" maxlength="50"></label>
+          <label>홈페이지<input name="homepage" type="url" maxlength="200" placeholder="https://"></label>
+        </div>
+        <label>제목 *<input name="title" required maxlength="100" placeholder="예) 리프트 A/S 요청"></label>
+        <label>내용<textarea name="content" rows="5" maxlength="2000"
           placeholder="차종, 증상, 연락처를 함께 남겨주시면 빠르게 연락드립니다."></textarea></label>
+        <div class="row">
+          <label>링크 #1<input name="link1" type="url" maxlength="200" placeholder="https://"></label>
+          <label>링크 #2<input name="link2" type="url" maxlength="200" placeholder="https://"></label>
+        </div>
+        <label>첨부파일 (최대 5개, 총 8MB)<input name="files" type="file" multiple></label>
+        <label class="check"><input type="checkbox" name="secret">비밀글로 등록하기</label>
         <button class="btn accent" type="submit" id="asSubmit">신청하기</button>
         <p class="form-status" id="asStatus"></p>
       </form>
@@ -60,6 +78,33 @@
       if (!f.hidden) f.scrollIntoView({ behavior: "smooth" });
     });
 
+    function showPost(p) {
+      document.getElementById("listView").hidden = true;
+      document.getElementById("postView").hidden = false;
+      document.getElementById("pvTitle").textContent = p.title;
+      document.getElementById("pvInfo").textContent =
+        `${maskName(p.author)} · ${p.created_at || ""}`;
+
+      const reveal = () => {
+        document.getElementById("pvGate").innerHTML = "";
+        document.getElementById("pvBody").hidden = false;
+        document.getElementById("pvContent").textContent = p.content;
+        document.getElementById("pvLinks").innerHTML =
+          [p.homepage, p.link1, p.link2].filter(Boolean)
+            .map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">🔗 ${esc(u)}</a>`).join("");
+        document.getElementById("pvFiles").innerHTML = renderFiles(p.files);
+        document.getElementById("pvImgs").innerHTML = (p.images || "")
+          .split("\n").filter(Boolean)
+          .map((u) => `<img src="${esc(u)}" alt="" loading="lazy">`).join("");
+      };
+
+      if (String(p.secret).toUpperCase() === "TRUE") {
+        renderSecretGate(document.getElementById("pvGate"), p.password || "", reveal);
+      } else {
+        reveal();
+      }
+    }
+
     (async () => {
       let rows;
       try {
@@ -73,30 +118,21 @@
       const id = qs("id");
       if (id) {
         const p = rows.find((r) => r.wr_id === id);
-        if (p) {
-          document.getElementById("listView").hidden = true;
-          document.getElementById("postView").hidden = false;
-          document.getElementById("pvTitle").textContent = p.title;
-          document.getElementById("pvInfo").textContent =
-            `${maskName(p.author)} · ${p.created_at || ""}`;
-          document.getElementById("pvContent").textContent = p.content;
-          document.getElementById("pvImgs").innerHTML = (p.images || "")
-            .split("\n").filter(Boolean)
-            .map((u) => `<img src="${esc(u)}" alt="" loading="lazy">`).join("");
-          return;
-        }
+        if (p) return showPost(p);
       }
 
       document.getElementById("totalLine").innerHTML = `Total <b>${rows.length}건</b> 1 페이지`;
       document.getElementById("status").textContent = rows.length ? "" : "등록된 글이 없습니다.";
       if (rows.length) document.getElementById("table").hidden = false;
-      document.getElementById("tbody").innerHTML = rows.map((r, i) => `
-        <tr>
+      document.getElementById("tbody").innerHTML = rows.map((r, i) => {
+        const secret = String(r.secret).toUpperCase() === "TRUE";
+        return `<tr>
           <td>${rows.length - i}</td>
-          <td class="subject"><a href="notice.html?id=${r.wr_id}">${esc(r.title)}</a></td>
+          <td class="subject"><a href="notice.html?id=${r.wr_id}">${secret ? '<span class="lock">🔒</span> ' : ""}${esc(r.title)}</a></td>
           <td>${esc(maskName(r.author))}</td>
           <td>${esc((r.created_at || "").split(" ")[0])}</td>
-        </tr>`).join("");
+        </tr>`;
+      }).join("");
     })();
 
     document.getElementById("asForm").addEventListener("submit", async (e) => {
@@ -107,17 +143,26 @@
       btn.disabled = true;
       st.textContent = "접수 중...";
       try {
+        if (f.files.files.length > 5) throw new Error("첨부파일은 최대 5개까지 가능합니다.");
+        const files = await encodeFiles(f.files.files, 8);
         await submitForm({
           action: "as",
           title: f.title.value.trim(),
           author: f.author.value.trim(),
           content: f.content.value.trim(),
+          email: f.email.value.trim(),
+          homepage: f.homepage.value.trim(),
+          link1: f.link1.value.trim(),
+          link2: f.link2.value.trim(),
+          password: await sha256(f.password.value),
+          secret: f.secret.checked,
+          files,
         });
         st.textContent = "접수되었습니다. 빠르게 연락드리겠습니다!";
         f.reset();
         setTimeout(() => location.reload(), 1800);
-      } catch {
-        st.textContent = "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
+      } catch (err) {
+        st.textContent = err.message || "접수에 실패했습니다. 전화(031-998-6588)로 문의해주세요.";
       } finally {
         btn.disabled = false;
       }
