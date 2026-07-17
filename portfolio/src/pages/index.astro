@@ -48,24 +48,12 @@ const careers = [
     description: '이폼사인 전자계약 서비스 관련 서버 개발',
     projects: [],
   },
-];
-
-const skills = [
-  'Java',
-  'Kotlin',
-  'Spring MVC',
-  'Spring Batch',
-  'Spring Cloud',
-  'JPA',
-  'QueryDSL',
-  'MyBatis',
-  'MySQL',
-  'Redis',
-  'ElasticSearch',
-  'Kafka',
-  'Kubernetes',
-  'React',
-  'Claude Code / AI Agent',
+  {
+    company: '정보처리기사 취득',
+    period: '2021.06',
+    description: '한국산업인력공단 국가기술자격',
+    projects: [],
+  },
 ];
 ---
 
@@ -167,20 +155,6 @@ const skills = [
     </ol>
   </section>
 
-  <section>
-    <h2 class="section-title">기술 스택</h2>
-    <ul class="skills">
-      {skills.map((skill) => <li class="chip">{skill}</li>)}
-    </ul>
-  </section>
-
-  <section>
-    <h2 class="section-title">자격증</h2>
-    <p>
-      <strong>정보처리기사</strong>
-      <span class="cert-meta"> · 한국산업인력공단 · 2021.06</span>
-    </p>
-  </section>
 </Base>
 
 <style>
@@ -344,15 +318,4 @@ const skills = [
     list-style: none;
   }
 
-  .skills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    list-style: none;
-  }
-
-  .cert-meta {
-    color: var(--text-soft);
-    font-size: 0.9rem;
-  }
 </style>

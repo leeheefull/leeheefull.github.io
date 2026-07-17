@@ -7,7 +7,19 @@ tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'Node Express', 'MySQL', 'Gra
 order: 3
 ---
 
-- 유지보수 어려움을 해결하기 위해 제휴 쇼핑몰 어드민/파트너 서비스를 Node.js에서 Kotlin Spring으로 기술 전환
-- 모니터링을 위해 Logback 설정으로 로그를 CloudWatch에 쌓고, 이를 Grafana에서 시각화할 수 있도록 함
-- 같은 도메인에 대해 API 레포와 Batch 레포가 나뉘어 중복 코드가 발생하고 유지보수가 어려웠던 구조를 멀티 모듈(Domain, API, Batch, Client)로 개선
-- 테스트 코드 부재로 CI 단계에서 빌드가 불안정했던 문제를 RestDocs 도입으로 개선 — 통합 테스트 코드를 작성해야만 API 문서화가 가능하도록 구현
+## 배경
+
+- 제휴쇼핑몰 어드민/파트너 서비스가 Node.js로 작성되어 팀 주력 스택과 달라 유지보수가 어려웠고, API 리포와 Batch 리포가 분리되어 같은 도메인 코드가 중복 관리되고 있었음
+- 테스트 코드가 없어 CI 단계에서 빌드가 불안정한 문제도 함께 해결해야 했음
+
+## 주요 작업
+
+- 어드민/파트너 서비스를 **Node.js → Kotlin Spring**으로 전환
+- 중복 코드가 발생하던 리포 구조를 **멀티 모듈(Domain / API / Batch / Client)** 로 재설계
+- **RestDocs 도입** — 통합 테스트를 작성해야만 API 문서가 생성되는 구조로 만들어 테스트 작성을 강제
+- Logback 로그를 CloudWatch에 적재하고 Grafana로 시각화하는 모니터링 체계 구성
+
+## 성과
+
+- 도메인 로직이 한 모듈로 모여 **중복 코드 제거와 유지보수성 개선**
+- 테스트-문서화가 묶인 구조 덕분에 CI 빌드 안정성과 API 문서 최신성을 동시에 확보
