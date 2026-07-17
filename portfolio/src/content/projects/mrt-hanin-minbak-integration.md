@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.06 - 2025.12'
 summary: '독립 서비스로 운영되던 한인민박을 직계약 숙소 플랫폼(스테이넷)으로 통합 — 예약/가격 캘린더, 후기, 상품 피드, 리다이렉트까지 데이터와 트래픽을 무중단 이관'
 tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'MySQL', 'Elasticsearch']
-order: 10
+order: 7
 ---
 
 ## 배경

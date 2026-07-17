@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.11 - 2026.02'
 summary: '정산 수수료 플랫폼과 숙박 도메인을 연동해 파트너 레벨 단일 수수료를 옵션(상품) 레벨 수수료로 전면 전환 — 여행자·파트너·매니저·배치·CMS 전 구간의 가격 로직 변경'
 tech: ['Kotlin', 'Java', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL', 'Elasticsearch', 'React']
-order: 7
+order: 4
 ---
 
 ## 배경

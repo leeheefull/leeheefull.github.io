@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.12 - 2026.01'
 summary: '전사 혜택(주문 쿠폰) 플랫폼의 숙박 도메인 연동 — 쿠폰 적용 순서·노출 로직 개발과 쿠폰 API 장애 시 서킷브레이커 분리 대응까지'
 tech: ['Java', 'Spring Boot', 'Resilience4j', 'MySQL', 'Elasticsearch']
-order: 6
+order: 3
 ---
 
 ## 배경
