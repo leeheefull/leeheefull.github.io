@@ -2,7 +2,7 @@
 const SHEET_ID = "1yvQ5UoYWz0bkfnjzORmgiNy5E3w0DePHTJgE_GlBNxM";
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycby7L6nEDEA4LrQJS8PsQF6na9OCbA_ODxP35qQImgrTLV5PyXz1CNQHdJh73sgy2s171Q/exec";
+  "https://script.google.com/macros/s/AKfycbx8fqrI9bPZUxOswqKbZb0BP4h0GzywN4-YBizDpLVw2t9WtmnnU_RwiWiJvQgHtm-j8w/exec";
 const KAKAO_URL = "https://open.kakao.com/o/s6HZ5bYh";
 const TEL = "031-998-6588";
 
