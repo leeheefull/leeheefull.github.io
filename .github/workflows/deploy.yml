@@ -38,6 +38,7 @@ jobs:
           touch _site/.nojekyll
           rsync -a yuju/ _site/yuju/
           rsync -a portfolio/dist/ _site/portfolio/
+          rsync -a central-lift/ _site/central-lift/
 
       - name: Encrypt index page
         env:
