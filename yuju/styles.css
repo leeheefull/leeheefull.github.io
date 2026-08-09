@@ -447,6 +447,11 @@ section {
   cursor: pointer;
 }
 
+/* 자리는 유지한 채 숨긴다 (답 고르기 전의 다음 문제 버튼) */
+.voca-next.hold {
+  visibility: hidden;
+}
+
 .voca-result {
   margin-top: 40px;
   display: flex;
@@ -475,6 +480,106 @@ section {
   padding: 10px 14px;
   text-align: left;
   font-size: 0.95rem;
+}
+
+.voca-book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.voca-book {
+  border: none;
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: rgba(255, 255, 255, 0.8);
+  color: #6b2b41;
+  font-family: inherit;
+  font-size: 1.02rem;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(233, 79, 124, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.voca-book .book-title {
+  display: block;
+}
+
+.voca-book .book-meta {
+  display: block;
+  font-size: 0.82rem;
+  color: #c98ba3;
+  margin-top: 4px;
+}
+
+.voca-book .chevron {
+  color: #b9557d;
+  font-size: 1.1rem;
+}
+
+.voca-units {
+  margin-top: 24px;
+}
+
+.voca-units-title {
+  text-align: center;
+  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
+  font-size: 1.6rem;
+  color: #b9557d;
+  margin-bottom: 4px;
+}
+
+.voca-units-sub {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #c98ba3;
+  margin-bottom: 18px;
+}
+
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.unit-btn {
+  border: none;
+  border-radius: 14px;
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.8);
+  color: #b9557d;
+  font-family: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.unit-btn small {
+  font-size: 0.68rem;
+  color: #c98ba3;
+}
+
+.unit-back {
+  display: block;
+  width: 100%;
+  margin-top: 22px;
+}
+
+.voca-scope {
+  display: inline-block;
+  background: #ffdce3;
+  color: #c22e55;
+  border-radius: 999px;
+  padding: 3px 12px;
+  font-size: 0.78rem;
+  margin-right: 6px;
 }
 
 @keyframes rise {

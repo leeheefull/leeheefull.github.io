@@ -23,13 +23,22 @@
     <!-- 모드 선택 -->
     <section id="vocaMenu" class="voca-menu">
       <p class="voca-status" id="vocaStatus">단어를 불러오는 중...</p>
-      <button class="voca-mode" id="modeAll" disabled>문제 풀기</button>
-      <button class="voca-mode" id="modeFail" disabled>자주 틀린 문제 풀기</button>
+      <button class="voca-mode" id="modeAll" disabled>🎲 전체 단어 랜덤 풀기</button>
+      <div class="voca-book-list" id="bookList"></div>
+      <button class="voca-mode ghost" id="modeFail" disabled>💦 자주 틀린 문제 풀기</button>
+    </section>
+
+    <!-- 책 → unit 선택 -->
+    <section id="vocaUnits" class="voca-units" hidden>
+      <p class="voca-units-title" id="unitsTitle"></p>
+      <p class="voca-units-sub">풀고 싶은 unit을 골라줘!</p>
+      <div class="unit-grid" id="unitGrid"></div>
+      <button class="voca-mode ghost unit-back" id="unitsBackBtn">← 처음으로</button>
     </section>
 
     <!-- 퀴즈 -->
     <section id="vocaQuiz" class="voca-quiz" hidden>
-      <p class="voca-progress" id="quizProgress"></p>
+      <p class="voca-progress" id="quizProgress"><span class="voca-scope" id="quizScope"></span><span id="quizNo"></span></p>
       <div class="voca-card">
         <span class="voca-fail-badge" id="failBadge" hidden></span>
         <p class="voca-word" id="quizWord"></p>
@@ -38,7 +47,8 @@
       </div>
       <div class="voca-options" id="quizOptions"></div>
       <p class="voca-feedback" id="quizFeedback"></p>
-      <button class="voca-next" id="nextBtn" hidden>다음 문제</button>
+      <button class="voca-next hold" id="nextBtn">다음 문제</button>
+      <button class="voca-mode ghost unit-back" id="quizBackBtn">← 처음으로</button>
     </section>
 
     <!-- 결과 -->
