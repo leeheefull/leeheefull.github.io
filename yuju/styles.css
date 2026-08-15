@@ -539,6 +539,12 @@ section {
   margin-bottom: 18px;
 }
 
+.book-random {
+  display: block;
+  width: 100%;
+  margin: 14px 0 20px;
+}
+
 .unit-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);

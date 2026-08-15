@@ -14,6 +14,7 @@ const modeAllBtn = document.getElementById("modeAll");
 const modeFailBtn = document.getElementById("modeFail");
 const bookListEl = document.getElementById("bookList");
 const unitsTitleEl = document.getElementById("unitsTitle");
+const bookRandomBtn = document.getElementById("bookRandomBtn");
 const unitGridEl = document.getElementById("unitGrid");
 const unitsBackBtn = document.getElementById("unitsBackBtn");
 const progressEl = document.getElementById("quizProgress");
@@ -148,6 +149,9 @@ function showUnits(book) {
   unitsTitleEl.textContent = book;
 
   const units = groupBooks().get(book) || new Map();
+  const wordTotal = [...units.values()].reduce((a, b) => a + b, 0);
+  bookRandomBtn.textContent = `🎲 이 책 전체 랜덤 (${wordTotal}단어)`;
+
   unitGridEl.innerHTML = "";
   for (const unit of [...units.keys()].sort((a, b) => a - b)) {
     const btn = document.createElement("button");
@@ -166,12 +170,14 @@ function showUnits(book) {
 function scopeLabel(scope) {
   if (scope.mode === "all") return "전체 랜덤";
   if (scope.mode === "fail") return "틀린 문제";
+  if (scope.mode === "book") return "책 전체 랜덤";
   return `unit ${scope.unit}`;
 }
 
 function buildDeck(scope) {
   if (scope.mode === "all") return words;
   if (scope.mode === "fail") return words.filter((w) => w.fail > 0);
+  if (scope.mode === "book") return words.filter((w) => w.book === scope.book);
   return words.filter((w) => w.book === scope.book && w.unit === scope.unit);
 }
 
@@ -179,7 +185,7 @@ function startQuiz(scope) {
   const deck = shuffle(buildDeck(scope));
   if (deck.length === 0) return;
   quiz = { scope, deck, index: 0, correct: 0, wrong: [] };
-  quizBackBtn.textContent = scope.mode === "unit" ? "← unit 선택으로" : "← 처음으로";
+  quizBackBtn.textContent = scope.book ? "← unit 선택으로" : "← 처음으로";
   showScreen("quiz");
   showQuestion();
 }
@@ -288,7 +294,7 @@ function leaveQuiz() {
   if (answeredCount > 0) {
     quiz.deck = quiz.deck.slice(0, answeredCount);
     showResult();
-  } else if (quiz.scope.mode === "unit") {
+  } else if (quiz.scope.book) {
     showUnits(quiz.scope.book);
   } else {
     backToMenu();
@@ -297,6 +303,7 @@ function leaveQuiz() {
 
 modeAllBtn.addEventListener("click", () => startQuiz({ mode: "all" }));
 modeFailBtn.addEventListener("click", () => startQuiz({ mode: "fail" }));
+bookRandomBtn.addEventListener("click", () => startQuiz({ mode: "book", book: currentBook }));
 unitsBackBtn.addEventListener("click", backToMenu);
 quizBackBtn.addEventListener("click", leaveQuiz);
 hintBtn.addEventListener("click", () => {
