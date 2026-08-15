@@ -206,10 +206,13 @@ function showQuestion() {
   // (다음 문제 더블탭 시 아래의 뒤로가기 버튼이 그 자리로 올라오는 사고 방지)
   nextBtn.classList.add("hold");
 
-  // 정답 1개 + 오답 3개. 보기끼리도 뜻이 겹치지 않게 고른다
+  // 정답 1개 + 오답 3개. 보기끼리도 뜻이 겹치지 않게 고른다.
+  // 책이 정해진 스코프면 그 책 안에서만 뽑는다 — 책마다 뜻 표기 형식이 달라서
+  // 섞이면 뜻이 아니라 생김새로 정답을 골라낼 수 있다
+  const pool = quiz.scope.book ? words.filter((w) => w.book === quiz.scope.book) : words;
   const seen = new Set([word.korean]);
   const distractors = [];
-  for (const w of shuffle(words)) {
+  for (const w of shuffle(pool)) {
     if (seen.has(w.korean)) continue;
     seen.add(w.korean);
     distractors.push(w);
@@ -244,20 +247,21 @@ function answer(btn, picked, word) {
     feedbackEl.textContent = `아쉬워요! 정답은 "${word.korean}"`;
     word.fail++;
     quiz.wrong.push(word);
-    reportFail(word.spanish);
+    reportFail(word);
   }
 
   nextBtn.classList.remove("hold");
   nextBtn.textContent = quiz.index + 1 < quiz.deck.length ? "다음 문제" : "결과 보기";
 }
 
-function reportFail(spanish) {
+function reportFail(word) {
   // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 응답은 확인하지 않는다
   fetch(WRITE_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify({ action: "fail", spanish }),
+    // 두 책에 같은 스페인어 단어가 있어서 book 없이는 엉뚱한 행의 카운트가 올라간다
+    body: JSON.stringify({ action: "fail", spanish: word.spanish, book: word.book }),
   }).catch(() => {});
 }
 
