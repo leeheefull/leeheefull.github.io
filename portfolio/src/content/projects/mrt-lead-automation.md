@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2026.04 - 2026.06'
 summary: '직계약 대상 호텔의 컨택 포인트를 AI로 일괄 추출하고 제안 메일 발송을 자동화 — 사업부의 수작업 영업 프로세스를 시스템으로 전환한 에픽'
 tech: ['Kotlin', 'Spring Boot', 'MySQL', 'AI Agent', 'Claude Code']
-order: 1
+order: 2
 ---
 
 ```mermaid

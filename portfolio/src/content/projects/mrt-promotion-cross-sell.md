@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.02 - 2025.09'
 summary: '숙박 세일 페스타(연 3회)와 제주 신화월드 프로모션을 안정적으로 운영하고, 반복되던 크로스셀 프로모션 로직을 시스템 기능으로 내재화'
 tech: ['Java', 'Spring Boot', 'MySQL', 'Elasticsearch']
-order: 9
+order: 10
 ---
 
 ```mermaid

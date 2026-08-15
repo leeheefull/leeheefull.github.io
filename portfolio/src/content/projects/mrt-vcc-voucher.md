@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.06 - 2025.08'
 summary: '해외 파트너 정산을 위한 가상카드(VCC) 예약/환불 연동과 예약 확정 바우처 메일 발송 자동화 — 국내/해외 템플릿, 다중 통화까지 지원'
 tech: ['Kotlin', 'Spring Boot', 'MySQL']
-order: 8
+order: 9
 ---
 
 ```mermaid

@@ -4,7 +4,7 @@ company: '마이리얼트립'
 period: '2025.01 - 2025.02'
 summary: '예약자 1명 정보만 받던 해외 숙소 예약을 투숙자 전원 정보 수집 구조로 전환 — 스키마부터 예약 생성·취소·바우처·MQ 흐름까지 E2E 확장'
 tech: ['Java', 'Spring Boot', 'Kafka', 'MySQL']
-order: 11
+order: 12
 ---
 
 ```mermaid
