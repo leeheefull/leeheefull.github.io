@@ -3,7 +3,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=spain-voca`;
 // 오답 카운트 기록용 Apps Script 웹 앱. {action:"fail", spanish} 를 받는다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbxpcZsBqHbpU4jvnnIQ37wHaOuYfj2lHabQLGE4QvQaiuvFvfv-kJTq2bxiBZ6ASCng/exec";
+  "https://script.google.com/macros/s/AKfycbx0IlYcp0P19a6X-9Xd0Wzl0ogQobpiuO37cZKr1gI49yeZiSvDt6uVeFatfgj6Ung/exec";
 
 const menuEl = document.getElementById("vocaMenu");
 const unitsEl = document.getElementById("vocaUnits");
