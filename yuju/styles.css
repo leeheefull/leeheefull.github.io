@@ -62,7 +62,6 @@ section {
 }
 
 .greeting {
-  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
   font-size: clamp(1.4rem, 6vw, 2rem);
   color: #d67b9a;
   margin-bottom: 8px;
@@ -98,7 +97,6 @@ section {
 }
 
 .dday {
-  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
   font-size: clamp(1.3rem, 5.5vw, 1.9rem);
   color: #d67b9a;
   margin-top: 14px;
@@ -151,7 +149,6 @@ section {
 }
 
 .menu a {
-  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
   font-size: 2.2rem;
   color: #b9557d;
   text-decoration: none;
@@ -473,7 +470,6 @@ section {
 }
 
 .voca-score {
-  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
   font-size: 1.9rem;
   color: #b9557d;
 }
@@ -538,7 +534,6 @@ section {
 
 .voca-units-title {
   text-align: center;
-  font-family: "Nanum Pen Script", "Gowun Dodum", sans-serif;
   font-size: 1.6rem;
   color: #b9557d;
   margin-bottom: 4px;
