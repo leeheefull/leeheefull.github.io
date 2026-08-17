@@ -611,3 +611,221 @@ section {
   0%, 100% { opacity: 0; }
   50% { opacity: 0.9; }
 }
+
+/* ── 하고 싶은 것 페이지 ── */
+.page-todo {
+  overflow-y: auto;
+}
+
+.todo {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding:
+    calc(20px + env(safe-area-inset-top))
+    calc(20px + env(safe-area-inset-right))
+    calc(20px + env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
+  pointer-events: auto;
+}
+
+/* 전역 section 규칙이 가운데 정렬이라 목록에서는 되돌린다 */
+.todo section {
+  text-align: left;
+}
+
+.todo-status {
+  margin: 14px 4px 6px;
+  font-size: 0.9rem;
+  color: #c98ba3;
+}
+
+.todo-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  border-radius: 12px;
+  padding: 11px 12px;
+}
+
+.todo-row.done {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.todo-tick {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 0;
+  border: 1.7px solid #f0a2bf;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 19px;
+  cursor: pointer;
+}
+
+.todo-row.done .todo-tick {
+  background: #ff7ba8;
+  border-color: #ff7ba8;
+}
+
+.todo-row.done .todo-tick::after {
+  content: "✓";
+}
+
+.todo-text {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.todo-row.done .todo-text {
+  text-decoration: line-through;
+  color: #c295a6;
+}
+
+.todo-meta {
+  font-size: 0.78rem;
+  color: #c58fa5;
+  margin-top: 3px;
+}
+
+.todo-meta.warn {
+  color: #c2564f;
+}
+
+.todo-memory {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: none;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  font-family: inherit;
+  color: #6b2b41;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* display를 지정하면 hidden 속성이 무시되므로 따로 되돌린다 */
+.todo-memory[hidden] {
+  display: none;
+}
+
+.memory-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.memory-head em {
+  font-style: normal;
+  color: #c58fa5;
+  font-size: 0.85rem;
+}
+
+.memory-go {
+  margin-left: auto;
+  color: #c58fa5;
+}
+
+.memory-peek {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.memory-peek li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: #b98da0;
+}
+
+.memory-peek li span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todo-add {
+  position: sticky;
+  bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 241, 246, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.todo-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+#todoText {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #6b2b41;
+  outline: none;
+}
+
+#todoSubmit {
+  flex: none;
+  width: 46px;
+  border: none;
+  border-radius: 12px;
+  background: #ff5a86;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.todo-done-title {
+  text-align: center;
+  font-size: 1.3rem;
+  color: #b9557d;
+  margin-bottom: 14px;
+}
+
+.todo-back {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 11px;
+  border: 1.5px solid #f0a8c0;
+  border-radius: 999px;
+  background: none;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #b9557d;
+  cursor: pointer;
+}
