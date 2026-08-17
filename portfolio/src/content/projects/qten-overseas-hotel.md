@@ -2,7 +2,7 @@
 title: '해외호텔 신규 프로젝트 및 신규 연동사 연동 개발'
 company: '큐텐테크놀로지'
 period: '2023.10 - 2024.04'
-summary: '해외 호텔 상품 판매 시스템 신규 개발, 캐시·비동기 도입으로 조회 latency 대폭 개선'
+summary: '해외 호텔 상품 판매 시스템 신규 개발 — 캐시 전략과 코루틴 병렬 호출로 목록 조회 latency를 약 4s에서 25ms로 단축'
 tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'MySQL', 'Redis', 'Feign Client', 'Gradle', 'AWS']
 order: 2
 ---

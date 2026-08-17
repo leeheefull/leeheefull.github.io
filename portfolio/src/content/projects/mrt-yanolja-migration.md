@@ -2,7 +2,7 @@
 title: '야놀자 OTA 연동 시스템 이관'
 company: '마이리얼트립'
 period: '2024.12 - 2025.06'
-summary: '입사 직후 담당한 레거시 이관 — 야놀자 연동의 배치·컨슈머·API 모듈을 통합 OTA 시스템으로 순차 이관하고 기존 서버 셧다운까지 완수'
+summary: '입사 직후 담당한 레거시 이관 — 국내 숙소 약 3만 개가 연동된 야놀자 채널의 배치·컨슈머·API를 통합 OTA 시스템으로 순차 이관하고 기존 서버 셧다운까지 완수'
 tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL']
 order: 13
 ---

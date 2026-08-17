@@ -10,6 +10,17 @@ const projectsOf = (company: string) =>
     .filter((p) => p.data.company === company)
     .sort((a, b) => a.data.order - b.data.order);
 
+const featuredProjects = allProjects
+  .filter((p) => p.data.featured)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const skills = [
+  { label: '언어', items: ['Kotlin', 'Java'] },
+  { label: '백엔드', items: ['Spring Boot', 'Spring Batch', 'JPA', 'QueryDSL', 'MyBatis'] },
+  { label: '데이터', items: ['MySQL', 'Elasticsearch', 'Redis', 'Kafka'] },
+  { label: '인프라 · 도구', items: ['AWS', 'Jenkins', 'Gradle', 'Claude Code'] },
+];
+
 const careers = [
   {
     company: '마이리얼트립',
@@ -72,7 +83,54 @@ const careers = [
     </ul>
   </header>
 
-  <section>
+  <section class="block">
+    <h2 class="section-title">기술 스택</h2>
+    <dl class="skills">
+      {
+        skills.map((group) => (
+          <div class="skill-row">
+            <dt>{group.label}</dt>
+            <dd>
+              <ul>
+                {group.items.map((item) => (
+                  <li class="chip">{item}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">주요 프로젝트</h2>
+    <ul class="project-cards featured">
+      {
+        featuredProjects.map((project) => (
+          <li>
+            <a class="project-card" href={`${base}/projects/${project.id}/`}>
+              <div class="card-head">
+                <span class="card-title">{project.data.title}</span>
+                {project.data.period && <span class="period">{project.data.period}</span>}
+              </div>
+              <p class="card-summary">{project.data.summary}</p>
+              {project.data.tech.length > 0 && (
+                <ul class="card-tech">
+                  {project.data.tech.slice(0, 5).map((t) => (
+                    <li class="chip">{t}</li>
+                  ))}
+                </ul>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">경력</h2>
     <ol class="timeline">
       {
         careers.map((career) => (
@@ -85,8 +143,10 @@ const careers = [
             <p class="desc">{career.description}</p>
 
             {career.projects && career.projects.length > 0 && (
-              <ul class="project-cards">
-                {career.projects.map((project) => (
+              <details class="project-fold">
+                <summary>프로젝트 {career.projects.length}건 보기</summary>
+                <ul class="project-cards">
+                  {career.projects.map((project) => (
                   <li>
                     <a class="project-card" href={`${base}/projects/${project.id}/`}>
                       <div class="card-head">
@@ -103,8 +163,9 @@ const careers = [
                       )}
                     </a>
                   </li>
-                ))}
-              </ul>
+                  ))}
+                </ul>
+              </details>
             )}
 
             {career.phases && (
@@ -121,8 +182,10 @@ const careers = [
                     <p class="team">{phase.team}</p>
                     <p class="desc">{phase.description}</p>
                     {phase.projects.length > 0 && (
-                      <ul class="project-cards">
-                        {phase.projects.map((project) => (
+                      <details class="project-fold">
+                        <summary>프로젝트 {phase.projects.length}건 보기</summary>
+                        <ul class="project-cards">
+                          {phase.projects.map((project) => (
                           <li>
                             <a class="project-card" href={`${base}/projects/${project.id}/`}>
                               <div class="card-head">
@@ -141,8 +204,9 @@ const careers = [
                               )}
                             </a>
                           </li>
-                        ))}
-                      </ul>
+                          ))}
+                        </ul>
+                      </details>
                     )}
                   </li>
                 ))}
@@ -181,6 +245,74 @@ const careers = [
     margin-top: 16px;
     list-style: none;
     font-size: 0.95rem;
+  }
+
+  .block + .block {
+    margin-top: 44px;
+  }
+
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .skills {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .skill-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+
+  .skill-row dt {
+    flex: 0 0 84px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+
+  .skill-row dd ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+  }
+
+  .featured > li > .project-card {
+    border-left: 3px solid var(--accent);
+  }
+
+  .project-fold {
+    margin-top: 18px;
+  }
+
+  .project-fold > summary {
+    cursor: pointer;
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-soft);
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .project-fold > summary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .project-fold[open] > summary {
+    margin-bottom: 4px;
   }
 
   .timeline {

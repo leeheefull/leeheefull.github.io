@@ -4,6 +4,7 @@ company: '마이리얼트립'
 period: '2026.02 - 2026.05'
 summary: '신규 숙소 공급사(CMS) 연동 과정을 AI 파이프라인으로 재설계 — 글로벌 CMS DerbySoft를 문서 자동 변환 → AI 코드 생성 → 검증 → Certification까지 완주, 이후 연동부터 재사용 가능한 방법론으로 정착'
 tech: ['Kotlin', 'Spring Boot', 'Kafka', 'MySQL', 'Claude Code', 'AI Agent']
+featured: true
 order: 3
 ---
 

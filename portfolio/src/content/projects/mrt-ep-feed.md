@@ -2,7 +2,7 @@
 title: '가격비교 상품 피드(EP) V2 전환 — 이벤트 기반 연동'
 company: '마이리얼트립'
 period: '2025.09 - 2025.10'
-summary: '배치 수집 구조였던 네이버 EP 전송을 숙소 도메인의 Kafka 이벤트 발행 구조로 전환 — 데이터 반영 지연을 줄이고 재사용 가능한 연동 패턴 확립'
+summary: '배치 수집 구조였던 네이버 EP 전송을 Kafka 이벤트 발행 구조로 전환 — 숙박 상품 10만여 건의 반영 지연을 줄이고 재사용 가능한 연동 패턴 확립'
 tech: ['Java', 'Spring Boot', 'Kafka', 'Spring Batch', 'MySQL']
 order: 6
 ---
