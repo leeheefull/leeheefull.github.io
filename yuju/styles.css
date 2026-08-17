@@ -49,7 +49,11 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding:
+    calc(24px + env(safe-area-inset-top))
+    calc(24px + env(safe-area-inset-right))
+    calc(24px + env(safe-area-inset-bottom))
+    calc(24px + env(safe-area-inset-left));
   pointer-events: none;
 }
 
@@ -113,8 +117,8 @@ section {
 /* ── 햄버거 메뉴 ── */
 .menu-btn {
   position: fixed;
-  top: 14px;
-  right: 14px;
+  top: calc(14px + env(safe-area-inset-top));
+  right: calc(14px + env(safe-area-inset-right));
   z-index: 3;
   background: none;
   border: none;
@@ -169,7 +173,11 @@ section {
   min-height: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding:
+    calc(20px + env(safe-area-inset-top))
+    calc(20px + env(safe-area-inset-right))
+    calc(60px + env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
   pointer-events: auto;
 }
 
@@ -305,7 +313,11 @@ section {
   min-height: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 20px 20px 60px;
+  padding:
+    calc(20px + env(safe-area-inset-top))
+    calc(20px + env(safe-area-inset-right))
+    calc(60px + env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
   pointer-events: auto;
 }
 
