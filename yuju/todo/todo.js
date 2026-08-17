@@ -2,9 +2,9 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 // to-do-list 탭 컬럼: 1 id | 2 created_at | 3 who | 4 text | 5 done_at
 // 완료 여부는 done_at 하나로 판단한다(비어 있으면 아직 안 한 것). 별도 플래그를 두면 둘이 어긋난다.
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=to-do-list`;
-// spain-voca와 같은 배포를 쓴다. 여기에 to-do 액션이 없는 옛 버전이 걸려 있으면 저장이 조용히 실패한다.
+// to-do 액션이 들어간 배포. 스크립트를 새 배포로 올리면 주소가 바뀌므로 여기도 같이 갈아야 한다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbx0IlYcp0P19a6X-9Xd0Wzl0ogQobpiuO37cZKr1gI49yeZiSvDt6uVeFatfgj6Ung/exec";
+  "https://script.google.com/macros/s/AKfycbxlFGU5oVFOqzA4EGONjctzIpdLt42SNMqBL6B2pRxO2NbHd4VD5NQ85rUlkMSsG5Vp/exec";
 
 const todoStatus = document.getElementById("todoStatus");
 const todoList = document.getElementById("todoList");
