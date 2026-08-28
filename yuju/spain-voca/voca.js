@@ -1,7 +1,9 @@
 const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
-// spain-voca 탭, 1행은 헤더: book name | chapter | spanish | korean | construction | fail count
+// spain-voca 탭에는 테이블 두 개가 나란히 있다. G열은 둘을 가르는 빈 열이고 1행은 헤더.
+//   A~F voca  : book id | chapter | spanish | korean | construction | fail count
+//   H~J books : book id | book name | chapter name(unit/chapter/page…)
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=spain-voca`;
-// 오답 카운트 기록용 Apps Script 웹 앱. {action:"fail", spanish} 를 받는다.
+// 오답 카운트 기록용 Apps Script 웹 앱. {action:"fail", spanish, bookId} 를 받는다.
 const WRITE_URL =
   "https://script.google.com/macros/s/AKfycbxlFGU5oVFOqzA4EGONjctzIpdLt42SNMqBL6B2pRxO2NbHd4VD5NQ85rUlkMSsG5Vp/exec";
 
@@ -14,6 +16,7 @@ const modeAllBtn = document.getElementById("modeAll");
 const modeFailBtn = document.getElementById("modeFail");
 const bookListEl = document.getElementById("bookList");
 const unitsTitleEl = document.getElementById("unitsTitle");
+const unitsSubEl = document.getElementById("unitsSub");
 const bookRandomBtn = document.getElementById("bookRandomBtn");
 const unitGridEl = document.getElementById("unitGrid");
 const unitsBackBtn = document.getElementById("unitsBackBtn");
@@ -33,6 +36,8 @@ const retryBtn = document.getElementById("retryBtn");
 const backToMenuBtn = document.getElementById("backToMenuBtn");
 
 let words = [];
+// books 테이블: book id -> { name, unitLabel }
+const books = new Map();
 let currentBook = null;
 let quiz = null; // { scope: {mode:"all"|"fail"|"unit", book?, unit?}, deck, index, correct, wrong: [word...] }
 
@@ -73,25 +78,43 @@ async function loadWords() {
     const res = await fetch(READ_URL, { cache: "no-store" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const csv = await res.text();
-    words = csv
-      .trim()
-      .split(/\r?\n/)
-      .map(parseCsvRow)
+    const rows = csv.trim().split(/\r?\n/).map(parseCsvRow);
+
+    // books 를 먼저 읽어야 단어의 book id 를 이름으로 바꿀 수 있다.
+    // 헤더 행은 H열(id)이 비어 있어 자연히 걸러진다
+    books.clear();
+    for (const r of rows) {
+      const id = (r[7] || "").trim();
+      if (!id || !r[8]) continue;
+      books.set(id, { name: r[8].trim(), unitLabel: (r[9] || "").trim() || "unit" });
+    }
+
+    words = rows
       .filter((r) => r[0] && r[2] && r[3] && r[2] !== "spanish")
-      .map((r) => ({
-        book: r[0],
-        unit: Number(r[1]) || 0,
-        spanish: r[2],
-        korean: r[3],
-        construction: r[4] || "",
-        fail: Number(r[5]) || 0,
-      }));
+      .map((r) => {
+        const bookId = r[0].trim();
+        return {
+          bookId,
+          // books 에 없는 id 면 id 를 그대로 보여준다 (숨기면 단어가 통째로 사라진다)
+          book: books.get(bookId)?.name || bookId,
+          unit: Number(r[1]) || 0,
+          spanish: r[2],
+          korean: r[3],
+          construction: r[4] || "",
+          fail: Number(r[5]) || 0,
+        };
+      });
     if (words.length === 0) throw new Error("empty sheet");
 
     renderMenu();
   } catch {
     statusEl.textContent = "단어를 불러오지 못했어요. 잠시 후 다시 열어주세요.";
   }
+}
+
+function unitLabel(book) {
+  for (const b of books.values()) if (b.name === book) return b.unitLabel;
+  return "unit";
 }
 
 function failCount() {
@@ -126,7 +149,7 @@ function renderMenu() {
     title.textContent = `📖 ${book}`;
     const meta = document.createElement("span");
     meta.className = "book-meta";
-    meta.textContent = `unit ${Math.min(...unitNums)}~${Math.max(...unitNums)} · ${wordTotal}단어`;
+    meta.textContent = `${unitLabel(book)} ${Math.min(...unitNums)}~${Math.max(...unitNums)} · ${wordTotal}단어`;
     label.append(title, meta);
     const chevron = document.createElement("span");
     chevron.className = "chevron";
@@ -151,6 +174,7 @@ function showUnits(book) {
   const units = groupBooks().get(book) || new Map();
   const wordTotal = [...units.values()].reduce((a, b) => a + b, 0);
   bookRandomBtn.textContent = `🎲 이 책 전체 랜덤 (${wordTotal}단어)`;
+  unitsSubEl.textContent = `풀고 싶은 ${unitLabel(book)} 골라줘!`;
 
   unitGridEl.innerHTML = "";
   for (const unit of [...units.keys()].sort((a, b) => a - b)) {
@@ -171,7 +195,7 @@ function scopeLabel(scope) {
   if (scope.mode === "all") return "전체 랜덤";
   if (scope.mode === "fail") return "틀린 문제";
   if (scope.mode === "book") return "책 전체 랜덤";
-  return `unit ${scope.unit}`;
+  return `${unitLabel(scope.book)} ${scope.unit}`;
 }
 
 function buildDeck(scope) {
@@ -185,7 +209,7 @@ function startQuiz(scope) {
   const deck = shuffle(buildDeck(scope));
   if (deck.length === 0) return;
   quiz = { scope, deck, index: 0, correct: 0, wrong: [] };
-  quizBackBtn.textContent = scope.book ? "← unit 선택으로" : "← 처음으로";
+  quizBackBtn.textContent = scope.book ? `← ${unitLabel(scope.book)} 선택으로` : "← 처음으로";
   showScreen("quiz");
   showQuestion();
 }
@@ -260,8 +284,9 @@ function reportFail(word) {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },
-    // 두 책에 같은 스페인어 단어가 있어서 book 없이는 엉뚱한 행의 카운트가 올라간다
-    body: JSON.stringify({ action: "fail", spanish: word.spanish, book: word.book }),
+    // 두 책에 같은 스페인어 단어가 있어서 책 없이는 엉뚱한 행의 카운트가 올라간다.
+    // A열이 이름이 아니라 id 이므로 id 로 보낸다
+    body: JSON.stringify({ action: "fail", spanish: word.spanish, bookId: word.bookId }),
   }).catch(() => {});
 }
 
