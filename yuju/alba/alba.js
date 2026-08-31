@@ -1,8 +1,9 @@
 const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
-// alba 탭에는 표 세 개가 나란히 있다. D열과 I열은 표를 가르는 빈 열이다.
+// alba 탭에는 표 네 개가 나란히 있다. D·I·M열은 표를 가르는 빈 열이다.
 //   A~C 근무 시간표 : day | start | end
 //   E~H 체크 항목   : id | order | text | active
 //   J~L 날짜별 기록 : date | done | updated_at
+//   N~P 휴게 시간   : day | break_start | break_end (한 줄이 휴게 하나. 같은 요일을 여러 줄 적으면 여러 번 쉰다)
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=alba`;
 // alba-check 액션이 들어간 배포. 스크립트를 새 배포로 올리면 주소가 바뀌므로 여기도 같이 갈아야 한다.
 const WRITE_URL =
@@ -26,6 +27,7 @@ const listEl = document.getElementById("albaList");
 const noteEl = document.getElementById("albaNote");
 
 const schedule = new Map(); // "월" -> { start: 540, end: 1080 } (분 단위)
+const breaks = new Map(); // "월" -> [{ start, end }, ...] 시작 시각 순
 let tasks = [];
 let checked = new Set();
 let today = "";
@@ -136,6 +138,7 @@ function parseSheet(csv) {
   const log = new Map();
 
   schedule.clear();
+  breaks.clear();
   tasks = [];
 
   for (const r of rows) {
@@ -156,9 +159,18 @@ function parseSheet(csv) {
 
     const date = (r[9] || "").trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) log.set(date, (r[10] || "").trim());
+
+    const restDay = (r[13] || "").trim();
+    const restStart = toMinutes(r[14]);
+    const restEnd = toMinutes(r[15]);
+    if (DOW.includes(restDay) && restStart !== null && restEnd !== null) {
+      if (!breaks.has(restDay)) breaks.set(restDay, []);
+      breaks.get(restDay).push({ start: restStart, end: restEnd });
+    }
   }
 
   tasks.sort((a, b) => a.order - b.order);
+  for (const list of breaks.values()) list.sort((a, b) => a.start - b.start);
   return log;
 }
 
@@ -185,7 +197,8 @@ function applyLog(log) {
 }
 
 function shiftState() {
-  const plan = schedule.get(dowOf(today));
+  const day = dowOf(today);
+  const plan = schedule.get(day);
   if (!plan) return { mode: "rest" };
 
   const now = nowMinutes();
@@ -193,7 +206,11 @@ function shiftState() {
   const end = plan.end <= plan.start ? plan.end + 1440 : plan.end;
 
   if (now < plan.start) return { mode: "before", left: plan.start - now, plan };
-  if (now < end) return { mode: "during", left: end - now, plan };
+  if (now < end) {
+    const rest = (breaks.get(day) || []).find((b) => now >= b.start && now < b.end);
+    if (rest) return { mode: "break", left: rest.end - now, plan, rest };
+    return { mode: "during", left: end - now, plan };
+  }
   return { mode: "after", plan };
 }
 
@@ -221,6 +238,11 @@ function renderCard() {
     bigEl.textContent = "쉬는 날";
     const next = nextWorkDay();
     spanEl.textContent = next ? `다음 근무 · ${next}` : "";
+  } else if (st.mode === "break") {
+    cardEl.classList.add("break");
+    labelEl.textContent = "휴게 중";
+    bigEl.textContent = `${humanLeft(st.left)} 남음`;
+    spanEl.textContent = `${hhmm(st.rest.start)} – ${hhmm(st.rest.end)}`;
   } else {
     spanEl.textContent = `${hhmm(st.plan.start)} – ${hhmm(st.plan.end)}`;
     if (st.mode === "before") {

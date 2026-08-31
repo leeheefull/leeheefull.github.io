@@ -884,6 +884,10 @@ section {
   background: rgba(226, 244, 236, 0.72);
 }
 
+.alba-card.break {
+  background: rgba(251, 238, 218, 0.78);
+}
+
 .alba-label {
   font-size: 0.82rem;
   color: #c58fa5;
@@ -904,6 +908,10 @@ section {
   color: #2f8f6b;
 }
 
+.alba-card.break .alba-big {
+  color: #b4761c;
+}
+
 .alba-span {
   font-size: 0.78rem;
   color: #c58fa5;
@@ -913,6 +921,11 @@ section {
 .alba-card.rest .alba-label,
 .alba-card.rest .alba-span {
   color: #92a4b8;
+}
+
+.alba-card.break .alba-label,
+.alba-card.break .alba-span {
+  color: #b08a52;
 }
 
 .alba-prog {
