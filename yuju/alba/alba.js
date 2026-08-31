@@ -80,10 +80,28 @@ function dowOf(iso) {
   return DOW[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
 }
 
+// 시트가 시각을 시간 값으로 저장해서, 셀 표시 형식이 바뀌면 읽히는 문자열도 같이 바뀐다.
+// "14:40" "14:40:00" "오후 2:40" "2:40 PM" 을 모두 같은 분으로 본다
 function toMinutes(text) {
-  const m = /^(\d{1,2}):(\d{2})/.exec(String(text).trim());
+  const s = String(text).trim();
+  const m = /(\d{1,2}):(\d{2})/.exec(s);
   if (!m) return null;
-  return Number(m[1]) * 60 + Number(m[2]);
+
+  let hour = Number(m[1]);
+  const min = Number(m[2]);
+  if (hour > 23 || min > 59) return null;
+
+  if (/오후|PM/i.test(s) && hour < 12) hour += 12;
+  if (/오전|AM/i.test(s) && hour === 12) hour = 0;
+  return hour * 60 + min;
+}
+
+// 날짜도 마찬가지다. "2026-08-31" "2026. 8. 31." "2026/8/31" 을 모두 2026-08-31 로 맞춘다.
+// 못 읽으면 빈 문자열 — 그날 기록이 없는 것으로 취급되고 앱이 다시 쓰면 스크립트가 찾아서 덮는다
+function toDateKey(text) {
+  const m = /(\d{4})\D+(\d{1,2})\D+(\d{1,2})/.exec(String(text).trim());
+  if (!m) return "";
+  return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
 }
 
 function hhmm(min) {
@@ -157,8 +175,8 @@ function parseSheet(csv) {
       tasks.push({ id, order: Number(r[5]) || 0, text });
     }
 
-    const date = (r[9] || "").trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) log.set(date, (r[10] || "").trim());
+    const date = toDateKey(r[9]);
+    if (date) log.set(date, (r[10] || "").trim());
 
     const restDay = (r[13] || "").trim();
     const restStart = toMinutes(r[14]);
