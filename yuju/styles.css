@@ -829,3 +829,189 @@ section {
   color: #b9557d;
   cursor: pointer;
 }
+
+/* ── 알바 페이지 ── */
+.page-alba {
+  overflow-y: auto;
+}
+
+.alba {
+  display: block;
+  height: auto;
+  min-height: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding:
+    calc(20px + env(safe-area-inset-top))
+    calc(20px + env(safe-area-inset-right))
+    calc(20px + env(safe-area-inset-bottom))
+    calc(20px + env(safe-area-inset-left));
+  pointer-events: auto;
+}
+
+/* 전역 section 규칙이 가운데 정렬이라 목록에서는 되돌린다 */
+.alba section {
+  text-align: left;
+}
+
+.alba-status {
+  margin: 14px 4px 6px;
+  font-size: 0.9rem;
+  color: #c98ba3;
+}
+
+.alba-status.warn {
+  color: #c2564f;
+}
+
+.alba-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 14px 0 16px;
+  padding: 22px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.66);
+  text-align: center;
+}
+
+.alba-card.rest {
+  background: rgba(238, 242, 247, 0.72);
+}
+
+.alba-card.done {
+  background: rgba(226, 244, 236, 0.72);
+}
+
+.alba-label {
+  font-size: 0.82rem;
+  color: #c58fa5;
+}
+
+.alba-big {
+  font-size: 1.9rem;
+  line-height: 1.25;
+  color: #d94b78;
+  font-variant-numeric: tabular-nums;
+}
+
+.alba-card.rest .alba-big {
+  color: #7b8fa8;
+}
+
+.alba-card.done .alba-big {
+  color: #2f8f6b;
+}
+
+.alba-span {
+  font-size: 0.78rem;
+  color: #c58fa5;
+  font-variant-numeric: tabular-nums;
+}
+
+.alba-card.rest .alba-label,
+.alba-card.rest .alba-span {
+  color: #92a4b8;
+}
+
+.alba-prog {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 4px 10px;
+}
+
+.alba-count {
+  font-size: 0.78rem;
+  color: #c58fa5;
+  font-variant-numeric: tabular-nums;
+}
+
+.alba-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.alba-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: #ff7ba8;
+  transition: width 0.25s ease;
+}
+
+.alba-bar i.full {
+  background: #5cc79c;
+}
+
+.alba-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alba-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.62);
+  border-radius: 12px;
+  padding: 13px 12px;
+}
+
+.alba-row.done {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.alba-tick {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1.7px solid #f0a2bf;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 21px;
+  cursor: pointer;
+}
+
+.alba-row.done .alba-tick {
+  background: #ff7ba8;
+  border-color: #ff7ba8;
+}
+
+.alba-row.done .alba-tick::after {
+  content: "✓";
+}
+
+.alba-text {
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.alba-row.done .alba-text {
+  text-decoration: line-through;
+  color: #c295a6;
+}
+
+.alba-note {
+  margin: 12px 4px 0;
+  font-size: 0.8rem;
+  color: #c58fa5;
+  text-align: center;
+}
+
+/* display를 지정하면 hidden 속성이 무시되므로 따로 되돌린다 */
+.alba-card[hidden],
+.alba-prog[hidden],
+.alba-list[hidden] {
+  display: none;
+}
