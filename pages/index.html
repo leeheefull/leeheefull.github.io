@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>leeheefull</title>
+  <title>pages · leeheefull</title>
   <style>
     :root {
       --bg: #ffffff;
@@ -48,7 +48,7 @@
       margin: 0 0 40px;
       font-size: 0.95rem;
     }
-    .projects {
+    .pages {
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -56,7 +56,7 @@
       margin: 0;
       list-style: none;
     }
-    .projects a {
+    .pages a {
       display: block;
       padding: 16px 20px;
       background: var(--card);
@@ -66,7 +66,7 @@
       color: inherit;
       transition: background 0.15s;
     }
-    .projects a:hover {
+    .pages a:hover {
       background: var(--card-hover);
     }
     .name {
@@ -78,38 +78,31 @@
       font-size: 0.9rem;
       margin-top: 2px;
     }
+    .empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 16px 20px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+    .back {
+      display: inline-block;
+      margin-top: 40px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-decoration: none;
+    }
+    .back:hover { color: var(--accent); }
   </style>
 </head>
 <body>
   <main>
-    <h1>leeheefull</h1>
-    <p class="subtitle">프로젝트 목차</p>
-    <ul class="projects">
-      <li>
-        <a href="/portfolio/">
-          <div class="name">portfolio</div>
-          <div class="desc">백엔드 개발자 이희찬의 포트폴리오</div>
-        </a>
-      </li>
-      <li>
-        <a href="/yuju/">
-          <div class="name">yuju</div>
-          <div class="desc">희찬 ❤️ 유주 — 우리 둘의 페이지</div>
-        </a>
-      </li>
-      <li>
-        <a href="/central-lift/">
-          <div class="name">central-lift</div>
-          <div class="desc">중앙리프트 — 차량용 리프트게이트 전문기업 홈페이지</div>
-        </a>
-      </li>
-      <li>
-        <a href="/pages/">
-          <div class="name">pages</div>
-          <div class="desc">저장된 페이지 모음</div>
-        </a>
-      </li>
+    <h1>pages</h1>
+    <p class="subtitle">저장된 페이지 모음</p>
+    <ul class="pages">
+      <li class="empty">아직 저장된 페이지가 없습니다.</li>
     </ul>
+    <a class="back" href="/">← leeheefull</a>
   </main>
 </body>
 </html>

@@ -39,6 +39,7 @@ jobs:
           rsync -a yuju/ _site/yuju/
           rsync -a portfolio/dist/ _site/portfolio/
           rsync -a central-lift/ _site/central-lift/
+          rsync -a pages/ _site/pages/
 
       - name: Encrypt index page
         env:
