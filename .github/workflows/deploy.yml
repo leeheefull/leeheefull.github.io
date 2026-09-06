@@ -40,6 +40,7 @@ jobs:
           rsync -a portfolio/dist/ _site/portfolio/
           rsync -a central-lift/ _site/central-lift/
           rsync -a pages/ _site/pages/
+          cp favicon.svg _site/
 
       - name: Encrypt index page
         env:
