@@ -1,0 +1,14 @@
+{
+  "name": "희찬 ❤️ 유주",
+  "short_name": "yuju",
+  "start_url": "/yuju/",
+  "scope": "/yuju/",
+  "display": "standalone",
+  "background_color": "#fffafc",
+  "theme_color": "#ffd9e4",
+  "icons": [
+    { "src": "/yuju/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/yuju/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/yuju/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
