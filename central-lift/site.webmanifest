@@ -1,0 +1,14 @@
+{
+  "name": "중앙리프트",
+  "short_name": "중앙리프트",
+  "start_url": "/central-lift/",
+  "scope": "/central-lift/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e2572e",
+  "icons": [
+    { "src": "/central-lift/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/central-lift/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/central-lift/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
