@@ -146,4 +146,13 @@ const base = import.meta.env.BASE_URL;
     max-width: 100%;
     height: auto;
   }
+
+  .content :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 20px 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
 </style>
