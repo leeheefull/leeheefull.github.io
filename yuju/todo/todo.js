@@ -4,7 +4,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=to-do-list`;
 // to-do 액션이 들어간 배포. 스크립트를 새 배포로 올리면 주소가 바뀌므로 여기도 같이 갈아야 한다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbyRTj7Dqlu_x19vxo1RsW0i0P3Oh-IPJPfRDcIT41S-lj98XaMUXYlwvJtWeU1R1MfD/exec";
+  "https://script.google.com/macros/s/AKfycbxfx8HtbjZRRC5G_F3ej3Z2E-NHPjFwpL85vI14lM4Gkdjt58jBN7EXFA_aKAiAzQ0u/exec";
 
 const todoStatus = document.getElementById("todoStatus");
 const todoList = document.getElementById("todoList");

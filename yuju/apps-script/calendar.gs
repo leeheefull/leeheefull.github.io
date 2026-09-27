@@ -1,10 +1,11 @@
 // 배포된 코드가 최신인지 눈으로 확인하기 위한 표식. 코드를 고칠 때 같이 올린다
-const CAL_CODE_VERSION = "2026-09-27d";
+const CAL_CODE_VERSION = "2026-09-27e";
 
 // calendar 컬럼: 1 id | 2 date | 3 kind | 4 title | 5 who | 6 photo_id | 7 created_at
-//   kind 가 event/anniv 이면 일정 행, photo 면 그 날의 사진 행이다.
-//   사진은 하루 한 장이라 date 가 곧 키다. 일정과 사진을 한 탭에 두는 건
-//   달력 화면이 둘을 항상 같이 읽기 때문이다. 탭이 나뉘면 요청이 두 번 나간다.
+//   kind 가 event/anniv 이면 일정 행, photo 면 사진 행이다.
+//   사진은 하루에 여러 장이라 date 로는 한 줄을 특정할 수 없다. 행마다 id 가 키다.
+//   달력 격자에 보이는 건 그 날의 첫 사진, 즉 시트에서 먼저 나오는 줄이다.
+//   일정과 사진을 한 탭에 두는 건 달력 화면이 둘을 항상 같이 읽기 때문이다.
 
 // 헤더만 먼저 붙여넣고 쓰기 시작하는 경우가 있어 1행 이하일 때도 서식을 다시 잡는다
 function calendarSheet_() {
@@ -114,51 +115,43 @@ function calendarAction_(action, data) {
     const date = calDateKey_(data.date);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return fail_("bad date");
     if (!data.image) return fail_("no image");
+    if (!data.id) return fail_("no id");
 
     const ext = String(data.mime || "").indexOf("png") >= 0 ? ".png" : ".jpg";
     const fileId = savePhoto_(data.image, data.mime, "yuju-" + date + ext);
-    const when = stamp_();
-    const last = sheet.getLastRow();
-    const rows = last >= 2 ? sheet.getRange(2, 1, last - 1, 6).getValues() : [];
 
-    for (let i = 0; i < rows.length; i++) {
-      // 하루 한 장이라 날짜로 찾는다. 이미 있으면 옛 사진은 휴지통으로 보내고 같은 줄을 갱신한다
-      if (rows[i][2] === "photo" && calDateKey_(rows[i][1]) === date) {
-        if (rows[i][5]) trashPhoto_(rows[i][5]);
-        sheet.getRange(i + 2, 4, 1, 4).setValues([
-          ["", String(data.who || "").slice(0, 10), fileId, when],
-        ]);
-        return ok_({ updated: true });
-      }
-    }
-
+    // 같은 날에 여러 장을 쌓으므로 언제나 새 줄로 붙인다.
+    // 한 장을 빼는 건 cal-delete 가 id 로 처리한다.
     sheet.appendRow([
-      String(data.id || "p" + date).slice(0, 40),
+      String(data.id).slice(0, 40),
       date,
       "photo",
       "",
       String(data.who || "").slice(0, 10),
       fileId,
-      when,
+      stamp_(),
     ]);
     return ok_({ created: true });
   }
 
-  // 그 날 사진 빼기 {action:"cal-photo-delete", date:"2026-09-19"}
+  // 그 날 사진을 전부 빼기 {action:"cal-photo-delete", date:"2026-09-19"}
+  // 한 장만 뺄 때는 cal-delete 에 그 사진의 id 를 준다
   if (action === "cal-photo-delete") {
     const date = calDateKey_(data.date);
     const last = sheet.getLastRow();
     if (last < 2) return fail_("empty");
 
     const rows = sheet.getRange(2, 1, last - 1, 6).getValues();
-    for (let i = 0; i < rows.length; i++) {
+    let removed = 0;
+    // 뒤에서부터 지워야 행 번호가 밀리지 않는다
+    for (let i = rows.length - 1; i >= 0; i--) {
       if (rows[i][2] === "photo" && calDateKey_(rows[i][1]) === date) {
         if (rows[i][5]) trashPhoto_(rows[i][5]);
         sheet.deleteRow(i + 2);
-        return ok_();
+        removed++;
       }
     }
-    return fail_("not found");
+    return removed ? ok_({ removed: removed }) : fail_("not found");
   }
 
   return fail_("unknown action");

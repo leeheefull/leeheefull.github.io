@@ -5,7 +5,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=calendar`;
 // 캘린더 액션이 들어간 배포. 스크립트를 새 배포로 올리면 여기도 같이 갈아야 한다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbyRTj7Dqlu_x19vxo1RsW0i0P3Oh-IPJPfRDcIT41S-lj98XaMUXYlwvJtWeU1R1MfD/exec";
+  "https://script.google.com/macros/s/AKfycbxfx8HtbjZRRC5G_F3ej3Z2E-NHPjFwpL85vI14lM4Gkdjt58jBN7EXFA_aKAiAzQ0u/exec";
 
 // 드라이브는 크기를 지정한 썸네일을 그냥 내준다. 칸은 50px이라 w120이면 충분하고,
 // 한 달에 31장을 부르므로 원본을 쓰면 데이터가 수십 배로 뛴다.
@@ -38,8 +38,11 @@ let showPhotos = true;
 const whoOn = new Set(WHOS);
 // 시트에 아직 반영 안 된 내 추가. 시트 반영이 몇 초 걸려서 바로 다시 읽으면 없는 것처럼 보인다.
 const pendingAdds = new Map();
-// 올렸지만 아직 시트에 안 보이는 사진. date -> dataURL. 드라이브 저장에 몇 초 걸린다
+// 올렸지만 아직 시트에 안 보이는 사진. id -> { date, dataUrl, tries }.
+// 드라이브 저장과 시트 반영에 몇 초 걸려서, 그 사이엔 방금 고른 사진을 대신 보여준다.
 const pendingPhotos = new Map();
+// 시트에서 지금 몇 번째 장을 보고 있는지. "이 사진 빼기" 가 이걸 본다
+let photoIndex = 0;
 const GIVE_UP_AFTER = 4;
 
 // 드라이브에는 원본을 그대로 둔다. 달력이 부르는 건 드라이브가 원본에서 만들어주는
@@ -152,9 +155,22 @@ function shrinkToJpeg(file, edge) {
   });
 }
 
-function photoOn(key) {
-  const hit = rows.find((r) => r.date === key && r.kind === "photo" && r.photoId);
-  return hit ? hit.photoId : null;
+// 한 날짜에 여러 장이 쌓인다. 시트에 먼저 나오는 줄이 첫 장이고, 달력 격자에는 그것만 보인다.
+// 올리는 중인 사진은 아직 시트에 없으므로 뒤에 붙여서 같이 보여준다.
+function photosOn(key) {
+  const saved = rows
+    .filter((r) => r.date === key && r.kind === "photo" && r.photoId)
+    .map((r) => ({ id: r.id, src: thumbSrc(r.photoId) }));
+  const uploading = [];
+  for (const [id, p] of pendingPhotos) {
+    if (p.date === key) uploading.push({ id, src: () => p.dataUrl });
+  }
+  return saved.concat(uploading);
+}
+
+// 크기는 쓰는 쪽에서 정한다. 격자는 작게, 시트는 크게 부른다
+function thumbSrc(photoId) {
+  return (w) => thumbUrl(photoId, w);
 }
 function visibleEventsOn(key) {
   // 이름 버튼으로 걸러진 것만 칸에 보여준다. 시트가 아니라 보기 설정이다
@@ -198,13 +214,12 @@ function cell(day, key, outside) {
       tag.textContent = ev.title;
       li.append(tag);
     }
-    const pid = showPhotos ? photoOn(key) : null;
-    const localPhoto = showPhotos ? pendingPhotos.get(key) : null;
-    if (pid || localPhoto) {
+    const first = showPhotos ? photosOn(key)[0] : null;
+    if (first) {
       const wrap = document.createElement("span");
       wrap.className = "cal-photo";
       const img = document.createElement("img");
-      img.src = localPhoto || thumbUrl(pid, 120);
+      img.src = first.src(120);
       img.alt = "";
       img.loading = "lazy";
       // 드라이브가 가끔 썸네일을 안 주면 빈 네모만 남으므로 자리째 접는다
@@ -240,45 +255,80 @@ function prettyKey(key) {
   return `${m}월 ${dd}일 ${DOW[new Date(key).getDay()]}요일`;
 }
 
+function renderPhotos() {
+  const list = photosOn(selected);
+  sheetPhoto.replaceChildren();
+
+  if (!list.length) {
+    const empty = document.createElement("button");
+    empty.type = "button";
+    empty.className = "cal-sheet-photo empty";
+    empty.textContent = "사진 넣기 +";
+    empty.addEventListener("click", () => photoInput.click());
+    sheetPhoto.append(empty);
+    return;
+  }
+
+  if (photoIndex >= list.length) photoIndex = list.length - 1;
+
+  // 가로 스크롤에 스냅을 걸어 캐러셀로 쓴다. 직접 드래그를 구현하는 것보다
+  // 관성과 터치 처리가 브라우저 몫이라 훨씬 안정적이다.
+  const track = document.createElement("div");
+  track.className = "cal-carousel";
+  for (const p of list) {
+    const slide = document.createElement("div");
+    slide.className = "cal-slide";
+    const img = document.createElement("img");
+    img.src = p.src(1000);
+    img.alt = "";
+    slide.append(img);
+    track.append(slide);
+  }
+  sheetPhoto.append(track);
+
+  if (list.length > 1) {
+    const dots = document.createElement("div");
+    dots.className = "cal-dots";
+    list.forEach((_, i) => {
+      const d = document.createElement("i");
+      if (i === photoIndex) d.classList.add("on");
+      dots.append(d);
+    });
+    sheetPhoto.append(dots);
+
+    track.addEventListener("scroll", () => {
+      const i = Math.round(track.scrollLeft / track.clientWidth);
+      if (i === photoIndex) return;
+      photoIndex = i;
+      [...dots.children].forEach((d, k) => d.classList.toggle("on", k === i));
+    });
+  }
+
+  const bar = document.createElement("div");
+  bar.className = "cal-photo-bar";
+  const more = document.createElement("button");
+  more.type = "button";
+  more.textContent = "사진 더 넣기";
+  more.addEventListener("click", () => photoInput.click());
+  const drop = document.createElement("button");
+  drop.type = "button";
+  drop.className = "danger";
+  drop.textContent = list.length > 1 ? "이 사진 빼기" : "사진 빼기";
+  drop.addEventListener("click", () => removePhotoAt(photoIndex));
+  bar.append(more, drop);
+  sheetPhoto.append(bar);
+
+  // 다시 그린 뒤에도 보던 장을 유지한다
+  if (photoIndex > 0) {
+    requestAnimationFrame(() => { track.scrollLeft = photoIndex * track.clientWidth; });
+  }
+}
+
 function renderSheet() {
   if (!selected) return;
   sheetTitle.textContent = prettyKey(selected) + (selected === todayKey ? " · 오늘" : "");
 
-  const pid = photoOn(selected);
-  const localPhoto = pendingPhotos.get(selected);
-  sheetPhoto.replaceChildren();
-
-  const box = document.createElement("button");
-  box.type = "button";
-  box.className = "cal-sheet-photo";
-  if (pid || localPhoto) {
-    const img = document.createElement("img");
-    // 올린 직후에는 드라이브 썸네일이 아직 안 만들어져서 방금 고른 사진을 그대로 보여준다
-    img.src = localPhoto || thumbUrl(pid, 1000);
-    img.alt = "";
-    box.append(img);
-  } else {
-    box.classList.add("empty");
-    box.textContent = "사진 넣기 +";
-  }
-  box.addEventListener("click", () => photoInput.click());
-  sheetPhoto.append(box);
-
-  if (pid || localPhoto) {
-    const bar = document.createElement("div");
-    bar.className = "cal-photo-bar";
-    const swap = document.createElement("button");
-    swap.type = "button";
-    swap.textContent = "사진 바꾸기";
-    swap.addEventListener("click", () => photoInput.click());
-    const drop = document.createElement("button");
-    drop.type = "button";
-    drop.className = "danger";
-    drop.textContent = "사진 빼기";
-    drop.addEventListener("click", removePhoto);
-    bar.append(swap, drop);
-    sheetPhoto.append(bar);
-  }
+  renderPhotos();
 
   const evs = eventsOn(selected);
   sheetEvents.replaceChildren();
@@ -332,6 +382,7 @@ if (window.visualViewport) {
 
 function openSheet(key) {
   selected = key;
+  photoIndex = 0;
   sheetStatus.textContent = "";
   calText.value = "";
   calAnniv.checked = false;
@@ -366,6 +417,12 @@ function merge(fromSheet) {
     item.tries++;
     if (item.tries > GIVE_UP_AFTER) { pendingAdds.delete(id); continue; }
     extra.push(item.row);
+  }
+  for (const [id, item] of pendingPhotos) {
+    // 시트에 그 id 가 보이면 올라간 것이다
+    if (ids.has(id)) { pendingPhotos.delete(id); continue; }
+    item.tries++;
+    if (item.tries > GIVE_UP_AFTER) pendingPhotos.delete(id);
   }
   rows = fromSheet.concat(extra);
 }
@@ -420,15 +477,18 @@ photoInput.addEventListener("change", async () => {
     return;
   }
 
+  // 여러 장이 쌓이므로 줄마다 고유 id 를 붙인다. 이 id 로 올라갔는지 확인하고, 뺄 때도 쓴다
+  const id = newId();
   // 화면에는 먼저 얹는다. 드라이브 저장과 시트 반영까지 몇 초 걸린다
-  pendingPhotos.set(date, dataUrl);
+  pendingPhotos.set(id, { date, dataUrl, tries: 0 });
+  if (selected === date) photoIndex = photosOn(date).length - 1; // 방금 넣은 장을 보여준다
   renderSheet();
   render();
   sheetStatus.textContent = "올리는 중...";
 
   post({
     action: "cal-photo",
-    id: `p${date}`,
+    id,
     date,
     who: calForm.elements.who.value,
     mime,
@@ -438,9 +498,9 @@ photoInput.addEventListener("change", async () => {
   // 드라이브에 저장되고 시트에 적히기까지 시간이 걸려 몇 번 나눠 확인한다
   for (const wait of [3000, 6000, 10000]) {
     setTimeout(async () => {
+      if (!pendingPhotos.has(id)) return;
       await load(true);
-      if (photoOn(date)) {
-        pendingPhotos.delete(date);
+      if (!pendingPhotos.has(id)) {
         if (selected === date) sheetStatus.textContent = "사진 올렸어요!";
         renderSheet();
         render();
@@ -448,21 +508,25 @@ photoInput.addEventListener("change", async () => {
     }, wait);
   }
   setTimeout(() => {
-    if (!pendingPhotos.has(date)) return;
-    pendingPhotos.delete(date);
+    if (!pendingPhotos.has(id)) return;
+    pendingPhotos.delete(id);
     if (selected === date) sheetStatus.textContent = "아직 반영이 안 됐어요. 잠시 뒤 다시 열어보세요.";
     renderSheet();
     render();
   }, 14000);
 });
 
-function removePhoto() {
+// 사진 줄도 id 로 찾으므로 일정과 같은 액션으로 지운다. 드라이브 파일도 같이 정리된다
+function removePhotoAt(i) {
   if (!selected) return;
-  const date = selected;
-  post({ action: "cal-photo-delete", date });
-  pendingPhotos.delete(date);
+  const target = photosOn(selected)[i];
+  if (!target) return;
+
+  post({ action: "cal-delete", id: target.id });
+  pendingPhotos.delete(target.id);
   // 시트가 진실이지만 반영 전까지는 화면에서 먼저 치운다
-  rows = rows.filter((r) => !(r.date === date && r.kind === "photo"));
+  rows = rows.filter((r) => r.id !== target.id);
+  photoIndex = Math.max(0, i - 1);
   sheetStatus.textContent = "사진을 뺐어요.";
   renderSheet();
   render();

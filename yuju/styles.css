@@ -1146,19 +1146,58 @@ section {
 
 /* 정사각을 가로폭에 맞추면 아이폰에서 354px을 먹어 일정과 입력칸이 화면 밖으로 밀린다.
    한 변을 화면 높이 기준으로 묶어서 시트가 항상 한 화면에 들어오게 한다. */
-.cal-sheet-photo {
+/* 사진이 여러 장이라 가로 스크롤에 스냅을 걸어 캐러셀로 쓴다.
+   직접 드래그를 구현하는 것보다 관성과 터치 처리가 브라우저 몫이라 안정적이다. */
+.cal-carousel {
+  display: flex;
+  width: 34vh;
+  width: 34dvh;
+  max-width: 100%;
+  margin: 0 auto 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
   border-radius: 15px;
-  aspect-ratio: 1;
-  overflow: hidden;
   border: 1px solid rgba(255, 140, 175, 0.25);
-  margin: 0 auto 12px;
+  scrollbar-width: none;
 }
 
-.cal-sheet-photo img {
+.cal-carousel::-webkit-scrollbar { display: none; }
+
+.cal-slide {
+  flex: 0 0 100%;
+  aspect-ratio: 1;
+  scroll-snap-align: center;
+}
+
+.cal-slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.cal-dots {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 11px;
+}
+
+.cal-dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 140, 175, 0.45);
+}
+
+.cal-dots i.on {
+  background: #ff5a86;
+}
+
+.cal-sheet-photo {
+  border-radius: 15px;
+  margin: 0 auto 12px;
 }
 
 /* 사진이 있을 때만 정사각형을 다 쓴다. 빈 자리까지 크면 일정과 입력이 화면 밖으로 밀린다 */
@@ -1317,7 +1356,7 @@ button.cal-sheet-photo.empty {
 .cal-photo-bar {
   display: flex;
   gap: 8px;
-  margin: -4px 0 12px;
+  margin: 0 0 12px;
 }
 
 .cal-photo-bar button {
