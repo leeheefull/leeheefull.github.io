@@ -3,8 +3,8 @@
 yuju 가 쓰는 Google Apps Script 웹앱의 원본. 시트 하나(`104A_zVF_EC...iLjo`)에 붙어 있고,
 앱은 `no-cors` 로만 호출하므로 응답을 읽지 못한다.
 
-배포되는 사이트에 포함되지 않도록 `yuju/` 바깥에 둔다 (워크플로는 `yuju/`·`portfolio/`·
-`pages/`·`assets/` 만 복사한다).
+앱과 같이 두되 배포에서는 빠진다. 워크플로가 `yuju/` 를 복사할 때 이 디렉터리만
+`--exclude` 로 제외하므로 `/yuju/apps-script/` 는 사이트에 올라가지 않는다.
 
 ## 파일
 

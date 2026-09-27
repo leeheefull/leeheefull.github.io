@@ -36,7 +36,8 @@ jobs:
         run: |
           mkdir -p _site
           touch _site/.nojekyll
-          rsync -a yuju/ _site/yuju/
+          # apps-script 는 Apps Script 편집기에 붙여넣는 원본이라 사이트에 올리지 않는다
+          rsync -a --exclude 'apps-script' yuju/ _site/yuju/
           rsync -a portfolio/dist/ _site/portfolio/
           rsync -a pages/ _site/pages/
           rsync -a assets/ _site/assets/
