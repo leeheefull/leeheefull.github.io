@@ -1091,7 +1091,8 @@ section {
   right: 0;
   bottom: 0;
   z-index: 6;
-  max-height: 82%;
+  max-height: 88vh;
+  max-height: 88dvh;
   display: flex;
   flex-direction: column;
   background: rgba(255, 251, 253, 0.97);
@@ -1143,12 +1144,14 @@ section {
   overflow-y: auto;
 }
 
+/* 정사각을 가로폭에 맞추면 아이폰에서 354px을 먹어 일정과 입력칸이 화면 밖으로 밀린다.
+   한 변을 화면 높이 기준으로 묶어서 시트가 항상 한 화면에 들어오게 한다. */
 .cal-sheet-photo {
   border-radius: 15px;
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid rgba(255, 140, 175, 0.25);
-  margin-bottom: 12px;
+  margin: 0 auto 12px;
 }
 
 .cal-sheet-photo img {
@@ -1295,14 +1298,18 @@ section {
 
 /* 사진 자리를 눌러서 고른다 */
 button.cal-sheet-photo {
-  width: 100%;
+  width: 34vh;
+  width: 34dvh;
+  max-width: 100%;
   padding: 0;
   font-family: inherit;
   cursor: pointer;
   display: block;
 }
 
+/* 사진이 없을 때는 낮은 띠라 가로를 다 써도 된다 */
 button.cal-sheet-photo.empty {
+  width: 100%;
   display: flex;
 }
 
