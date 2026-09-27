@@ -877,6 +877,13 @@ section {
   padding: 12px 13px 9px;
 }
 
+/* « ‹ 2026년 9월 › » 를 한 덩어리로 둔다. 겹화살표는 1년씩 건너뛴다 */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
 .cal-mv {
   border: none;
   background: none;
@@ -884,58 +891,33 @@ section {
   font-size: 1.1rem;
   color: #c9a0b4;
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 2px 5px;
 }
 
 .cal-mon {
   font-size: 0.95rem;
   color: #3f3438;
+  padding: 0 3px;
+  white-space: nowrap;
 }
 
-.cal-toggle {
+/* 이번 달에서는 눌러도 달라질 게 없으니 흐리게 두고 막는다 */
+.cal-today {
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  color: #8a7a80;
-  cursor: pointer;
-}
-
-.cal-toggle input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.cal-toggle .sw {
-  width: 32px;
-  height: 18px;
+  border: 1.3px solid #ffc2d5;
   border-radius: 999px;
-  background: #ddd;
-  position: relative;
-  transition: background 0.18s;
-}
-
-.cal-toggle .sw::after {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
   background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.18s;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #c2456f;
+  padding: 4px 11px;
+  cursor: pointer;
+  transition: opacity 0.18s;
 }
 
-.cal-toggle input:checked + .sw {
-  background: #ff7ba1;
-}
-
-.cal-toggle input:checked + .sw::after {
-  transform: translateX(14px);
+.cal-today:disabled {
+  opacity: 0.32;
+  cursor: default;
 }
 
 /* 누가 넣은 일정인지 색으로 구분한다. 눌러서 끄면 그 사람 일정만 숨는다 */

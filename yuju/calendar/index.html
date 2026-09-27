@@ -22,13 +22,14 @@
   <main class="cal">
     <div class="cal-card">
       <div class="cal-head">
-        <button class="cal-mv" type="button" id="prevBtn" aria-label="이전 달">‹</button>
-        <span class="cal-mon" id="calMonth"></span>
-        <button class="cal-mv" type="button" id="nextBtn" aria-label="다음 달">›</button>
-        <label class="cal-toggle">사진
-          <input type="checkbox" id="photoToggle" checked>
-          <span class="sw"></span>
-        </label>
+        <div class="cal-nav">
+          <button class="cal-mv" type="button" id="prevYearBtn" aria-label="1년 전">«</button>
+          <button class="cal-mv" type="button" id="prevBtn" aria-label="이전 달">‹</button>
+          <span class="cal-mon" id="calMonth"></span>
+          <button class="cal-mv" type="button" id="nextBtn" aria-label="다음 달">›</button>
+          <button class="cal-mv" type="button" id="nextYearBtn" aria-label="1년 후">»</button>
+        </div>
+        <button class="cal-today" type="button" id="todayBtn">오늘</button>
       </div>
 
       <div class="cal-who" id="whoBar">

@@ -17,7 +17,7 @@ const DOW = ["일", "월", "화", "수", "목", "금", "토"];
 const calGrid = document.getElementById("calGrid");
 const calMonth = document.getElementById("calMonth");
 const calStatus = document.getElementById("calStatus");
-const photoToggle = document.getElementById("photoToggle");
+const todayBtn = document.getElementById("todayBtn");
 const whoBar = document.getElementById("whoBar");
 const calSheet = document.getElementById("calSheet");
 const calBackdrop = document.getElementById("calBackdrop");
@@ -34,7 +34,6 @@ const photoInput = document.getElementById("photoInput");
 let rows = [];               // 시트에서 읽은 전체
 let offset = 0;              // 0 = 이번 달
 let selected = null;         // "2026-09-19"
-let showPhotos = true;
 const whoOn = new Set(WHOS);
 // 시트에 아직 반영 안 된 내 추가. 시트 반영이 몇 초 걸려서 바로 다시 읽으면 없는 것처럼 보인다.
 const pendingAdds = new Map();
@@ -214,7 +213,7 @@ function cell(day, key, outside) {
       tag.textContent = ev.title;
       li.append(tag);
     }
-    const first = showPhotos ? photosOn(key)[0] : null;
+    const first = photosOn(key)[0];
     if (first) {
       const wrap = document.createElement("span");
       wrap.className = "cal-photo";
@@ -234,6 +233,7 @@ function cell(day, key, outside) {
 function render() {
   const d = monthDate();
   calMonth.textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
+  todayBtn.disabled = offset === 0;
 
   const first = d.getDay();
   const days = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
@@ -405,6 +405,29 @@ function closeSheet() {
 }
 
 /* ── 읽기 ── */
+// Apps Script 는 잠들었다 깨느라 3초 남짓 걸린다. 그 사이 빈 달력만 보는 게 제일 답답해서
+// 마지막으로 읽은 걸 기기에 두고, 열면 그걸 먼저 그린 뒤 뒤에서 조용히 갱신한다.
+// 시트가 진실이고 이건 어디까지나 먼저 보여주는 그림이다.
+const CACHE_KEY = "yuju-cal-rows";
+
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const list = raw ? JSON.parse(raw) : null;
+    return Array.isArray(list) ? list : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(list) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(list));
+  } catch {
+    // 저장 공간이 없거나 사파리 비공개 모드면 그냥 캐시 없이 산다
+  }
+}
+
 function newId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -430,7 +453,9 @@ function merge(fromSheet) {
 async function load(quiet) {
   try {
     const res = await fetch(READ_URL, { cache: "no-store" });
-    merge(parseSheet(await res.text()));
+    const fromSheet = parseSheet(await res.text());
+    writeCache(fromSheet);
+    merge(fromSheet);
     calStatus.hidden = true;
   } catch {
     if (!quiet) {
@@ -544,13 +569,16 @@ function removeEvent(ev) {
 }
 
 /* ── 이벤트 ── */
-document.getElementById("prevBtn").addEventListener("click", () => { offset--; render(); });
-document.getElementById("nextBtn").addEventListener("click", () => { offset++; render(); });
-
-photoToggle.addEventListener("change", () => {
-  showPhotos = photoToggle.checked;
+// offset 은 이번 달에서 몇 달 떨어졌는지다. 1년은 12달이라 겹화살표는 12씩 움직인다
+function go(by) {
+  offset += by;
   render();
-});
+}
+document.getElementById("prevYearBtn").addEventListener("click", () => go(-12));
+document.getElementById("prevBtn").addEventListener("click", () => go(-1));
+document.getElementById("nextBtn").addEventListener("click", () => go(1));
+document.getElementById("nextYearBtn").addEventListener("click", () => go(12));
+todayBtn.addEventListener("click", () => { offset = 0; render(); });
 
 whoBar.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-w]");
@@ -604,4 +632,12 @@ calForm.addEventListener("submit", (e) => {
   setTimeout(() => load(true), 1500);
 });
 
-load();
+// 캐시가 있으면 기다리지 않고 바로 그린다. 이어지는 load 가 시트 내용으로 덮는다.
+// 캐시가 없어도 격자는 먼저 그려둔다 — 빈 카드보다 날짜라도 보이는 게 낫다
+const cached = readCache();
+if (cached) {
+  rows = cached;
+  calStatus.hidden = true;
+}
+render();
+load(Boolean(cached));
