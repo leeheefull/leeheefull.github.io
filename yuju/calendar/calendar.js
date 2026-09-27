@@ -116,7 +116,7 @@ const keyOf = (d, day) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(day
 function eventsOn(key) {
   return rows.filter((r) => r.date === key && r.kind !== "photo");
 }
-// 파일을 그대로 base64 로 읽는다
+
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -374,7 +374,6 @@ async function load(quiet) {
   try {
     const res = await fetch(READ_URL, { cache: "no-store" });
     merge(parseSheet(await res.text()));
-    calStatus.textContent = "";
     calStatus.hidden = true;
   } catch {
     if (!quiet) {
