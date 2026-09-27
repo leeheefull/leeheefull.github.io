@@ -3,7 +3,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=note`;
 // 글쓰기 API: 시트에 붙은 Apps Script 웹 앱 URL. 비어 있으면 글쓰기가 잠긴다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycby39E0HemmFkLNCULIiobvTWNKWH-C-qD_nRYvWzYcL2ijpO7UGxQifoyR3Vy-R6obO/exec";
+  "https://script.google.com/macros/s/AKfycbxBLPP0O-aqxIYvaNOQ2mSqzPXMZZuq01FGctoDV_m_-Gg6eJ6xnsNGOJK-vio3jypz/exec";
 
 const noteForm = document.getElementById("noteForm");
 const noteText = document.getElementById("noteText");

@@ -5,7 +5,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=calendar`;
 // 캘린더 액션이 들어간 배포. 스크립트를 새 배포로 올리면 여기도 같이 갈아야 한다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycby39E0HemmFkLNCULIiobvTWNKWH-C-qD_nRYvWzYcL2ijpO7UGxQifoyR3Vy-R6obO/exec";
+  "https://script.google.com/macros/s/AKfycbxBLPP0O-aqxIYvaNOQ2mSqzPXMZZuq01FGctoDV_m_-Gg6eJ6xnsNGOJK-vio3jypz/exec";
 
 // 드라이브는 크기를 지정한 썸네일을 그냥 내준다. 칸은 50px이라 w120이면 충분하고,
 // 한 달에 31장을 부르므로 원본을 쓰면 데이터가 수십 배로 뛴다.
@@ -29,6 +29,7 @@ const calForm = document.getElementById("calForm");
 const calText = document.getElementById("calText");
 const calSubmit = document.getElementById("calSubmit");
 const calAnniv = document.getElementById("calAnniv");
+const photoInput = document.getElementById("photoInput");
 
 let rows = [];               // 시트에서 읽은 전체
 let offset = 0;              // 0 = 이번 달
@@ -37,7 +38,16 @@ let showPhotos = true;
 const whoOn = new Set(WHOS);
 // 시트에 아직 반영 안 된 내 추가. 시트 반영이 몇 초 걸려서 바로 다시 읽으면 없는 것처럼 보인다.
 const pendingAdds = new Map();
+// 올렸지만 아직 시트에 안 보이는 사진. date -> dataURL. 드라이브 저장에 몇 초 걸린다
+const pendingPhotos = new Map();
 const GIVE_UP_AFTER = 4;
+
+// 드라이브에는 원본을 그대로 둔다. 달력이 부르는 건 드라이브가 원본에서 만들어주는
+// 썸네일이라, 원본을 보관해도 화면에서 쓰는 데이터는 늘지 않는다.
+// 다만 너무 크면 전송도 Apps Script 도 버거우므로 이 선을 넘을 때만 줄인다.
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+const FALLBACK_EDGE = 2400;
+const JPEG_QUALITY = 0.9;
 
 // main.js가 D-day용으로 kstFmt를 전역에 선언한다. 같은 이름을 쓰면 스크립트 전체가 죽는다.
 const calKstFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" });
@@ -106,6 +116,42 @@ const keyOf = (d, day) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(day
 function eventsOn(key) {
   return rows.filter((r) => r.date === key && r.kind !== "photo");
 }
+// 파일을 그대로 base64 로 읽는다
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("이미지를 읽지 못했어요"));
+    reader.readAsDataURL(file);
+  });
+}
+
+// 상한을 넘는 사진만 캔버스로 줄인다.
+// <img> 로 한 번 거치면 요즘 브라우저가 EXIF 회전을 알아서 반영해준다.
+function shrinkToJpeg(file, edge) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, edge / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      // 투명 PNG를 JPEG로 바꾸면 검게 깔리므로 흰 바탕을 먼저 칠한다
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", JPEG_QUALITY));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("이미지를 읽지 못했어요")); };
+    img.src = url;
+  });
+}
+
 function photoOn(key) {
   const hit = rows.find((r) => r.date === key && r.kind === "photo" && r.photoId);
   return hit ? hit.photoId : null;
@@ -153,11 +199,12 @@ function cell(day, key, outside) {
       li.append(tag);
     }
     const pid = showPhotos ? photoOn(key) : null;
-    if (pid) {
+    const localPhoto = showPhotos ? pendingPhotos.get(key) : null;
+    if (pid || localPhoto) {
       const wrap = document.createElement("span");
       wrap.className = "cal-photo";
       const img = document.createElement("img");
-      img.src = thumbUrl(pid, 120);
+      img.src = localPhoto || thumbUrl(pid, 120);
       img.alt = "";
       img.loading = "lazy";
       // 드라이브가 가끔 썸네일을 안 주면 빈 네모만 남으므로 자리째 접는다
@@ -198,20 +245,39 @@ function renderSheet() {
   sheetTitle.textContent = prettyKey(selected) + (selected === todayKey ? " · 오늘" : "");
 
   const pid = photoOn(selected);
+  const localPhoto = pendingPhotos.get(selected);
   sheetPhoto.replaceChildren();
-  if (pid) {
-    const box = document.createElement("div");
-    box.className = "cal-sheet-photo";
+
+  const box = document.createElement("button");
+  box.type = "button";
+  box.className = "cal-sheet-photo";
+  if (pid || localPhoto) {
     const img = document.createElement("img");
-    img.src = thumbUrl(pid, 1000);
+    // 올린 직후에는 드라이브 썸네일이 아직 안 만들어져서 방금 고른 사진을 그대로 보여준다
+    img.src = localPhoto || thumbUrl(pid, 1000);
     img.alt = "";
     box.append(img);
-    sheetPhoto.append(box);
   } else {
-    const empty = document.createElement("div");
-    empty.className = "cal-sheet-photo empty";
-    empty.textContent = "아직 사진이 없어요";
-    sheetPhoto.append(empty);
+    box.classList.add("empty");
+    box.textContent = "사진 넣기 +";
+  }
+  box.addEventListener("click", () => photoInput.click());
+  sheetPhoto.append(box);
+
+  if (pid || localPhoto) {
+    const bar = document.createElement("div");
+    bar.className = "cal-photo-bar";
+    const swap = document.createElement("button");
+    swap.type = "button";
+    swap.textContent = "사진 바꾸기";
+    swap.addEventListener("click", () => photoInput.click());
+    const drop = document.createElement("button");
+    drop.type = "button";
+    drop.className = "danger";
+    drop.textContent = "사진 빼기";
+    drop.addEventListener("click", removePhoto);
+    bar.append(swap, drop);
+    sheetPhoto.append(bar);
   }
 
   const evs = eventsOn(selected);
@@ -230,7 +296,13 @@ function renderSheet() {
       const w = document.createElement("span");
       w.className = "who-tag";
       w.textContent = ev.who;
-      li.append(t, w);
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "cal-ev-del";
+      del.setAttribute("aria-label", `${ev.title} 삭제`);
+      del.textContent = "✕";
+      del.addEventListener("click", () => removeEvent(ev));
+      li.append(t, w, del);
       if (pendingAdds.has(ev.id)) li.classList.add("pending");
       sheetEvents.append(li);
     }
@@ -298,6 +370,88 @@ function post(payload) {
     headers: { "Content-Type": "text/plain" },
     body: JSON.stringify(payload),
   }).catch(() => {});
+}
+
+/* ── 사진 ── */
+photoInput.addEventListener("change", async () => {
+  const file = photoInput.files && photoInput.files[0];
+  photoInput.value = ""; // 같은 사진을 다시 고를 수 있게 비운다
+  if (!file || !selected) return;
+
+  const date = selected;
+  sheetStatus.textContent = "사진 읽는 중...";
+  let dataUrl;
+  let mime = file.type || "image/jpeg";
+  try {
+    if (file.size <= MAX_UPLOAD_BYTES) {
+      dataUrl = await fileToDataUrl(file); // 원본 그대로
+    } else {
+      sheetStatus.textContent = "사진이 커서 조금 줄이는 중...";
+      dataUrl = await shrinkToJpeg(file, FALLBACK_EDGE);
+      mime = "image/jpeg";
+    }
+  } catch {
+    sheetStatus.textContent = "이 사진은 읽지 못했어요. 다른 걸로 해볼까요?";
+    return;
+  }
+
+  // 화면에는 먼저 얹는다. 드라이브 저장과 시트 반영까지 몇 초 걸린다
+  pendingPhotos.set(date, dataUrl);
+  renderSheet();
+  render();
+  sheetStatus.textContent = "올리는 중...";
+
+  post({
+    action: "cal-photo",
+    id: `p${date}`,
+    date,
+    who: calForm.elements.who.value,
+    mime,
+    image: dataUrl.slice(dataUrl.indexOf(",") + 1),
+  });
+
+  // 드라이브에 저장되고 시트에 적히기까지 시간이 걸려 몇 번 나눠 확인한다
+  for (const wait of [3000, 6000, 10000]) {
+    setTimeout(async () => {
+      await load(true);
+      if (photoOn(date)) {
+        pendingPhotos.delete(date);
+        if (selected === date) sheetStatus.textContent = "사진 올렸어요!";
+        renderSheet();
+        render();
+      }
+    }, wait);
+  }
+  setTimeout(() => {
+    if (!pendingPhotos.has(date)) return;
+    pendingPhotos.delete(date);
+    if (selected === date) sheetStatus.textContent = "아직 반영이 안 됐어요. 잠시 뒤 다시 열어보세요.";
+    renderSheet();
+    render();
+  }, 14000);
+});
+
+function removePhoto() {
+  if (!selected) return;
+  const date = selected;
+  post({ action: "cal-photo-delete", date });
+  pendingPhotos.delete(date);
+  // 시트가 진실이지만 반영 전까지는 화면에서 먼저 치운다
+  rows = rows.filter((r) => !(r.date === date && r.kind === "photo"));
+  sheetStatus.textContent = "사진을 뺐어요.";
+  renderSheet();
+  render();
+  setTimeout(() => load(true), 2500);
+}
+
+function removeEvent(ev) {
+  post({ action: "cal-delete", id: ev.id });
+  pendingAdds.delete(ev.id);
+  rows = rows.filter((r) => r.id !== ev.id);
+  sheetStatus.textContent = "일정을 지웠어요.";
+  renderSheet();
+  render();
+  setTimeout(() => load(true), 2500);
 }
 
 /* ── 이벤트 ── */
