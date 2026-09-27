@@ -9,56 +9,75 @@
   <link rel="apple-touch-icon" href="/yuju/icon-180.png">
   <link rel="manifest" href="/yuju/site.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="하고싶은것">
+  <meta name="apple-mobile-web-app-title" content="달력">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>하고 싶은 것 · 희찬 ❤️ 유주</title>
+  <title>달력 · 희찬 ❤️ 유주</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body class="page-todo">
-  <main class="todo">
-    <header class="notes-header">
-      <h1>하고 싶은 것</h1>
+<body class="page-cal">
+
+  <main class="cal">
+    <div class="cal-card">
+      <div class="cal-head">
+        <button class="cal-mv" type="button" id="prevBtn" aria-label="이전 달">‹</button>
+        <span class="cal-mon" id="calMonth"></span>
+        <button class="cal-mv" type="button" id="nextBtn" aria-label="다음 달">›</button>
+        <label class="cal-toggle">사진
+          <input type="checkbox" id="photoToggle" checked>
+          <span class="sw"></span>
+        </label>
+      </div>
+
+      <div class="cal-who" id="whoBar">
+        <button type="button" data-w="희찬" aria-pressed="true">희찬</button>
+        <button type="button" data-w="유주" aria-pressed="true">유주</button>
+        <button type="button" data-w="우리" aria-pressed="true">우리</button>
+      </div>
+
+      <div class="cal-dow"><i>일</i><i>월</i><i>화</i><i>수</i><i>목</i><i>금</i><i>토</i></div>
+      <p class="cal-status" id="calStatus">달력을 불러오는 중...</p>
+      <div class="cal-gridwrap"><div class="cal-grid" id="calGrid"></div></div>
+    </div>
+  </main>
+
+  <div class="cal-backdrop" id="calBackdrop" hidden></div>
+  <section class="cal-sheet" id="calSheet" hidden aria-label="그 날">
+    <div class="cal-grip"></div>
+    <header class="cal-sheet-head">
+      <span id="sheetTitle"></span>
+      <button type="button" id="sheetClose" aria-label="닫기">✕</button>
     </header>
-
-    <!-- 하고 싶은 것 -->
-    <section id="todoMain">
-      <p class="todo-status" id="todoStatus">불러오는 중...</p>
-      <ul class="todo-list" id="todoList"></ul>
-
-      <button type="button" class="todo-memory" id="memoryBtn" hidden>
-        <span class="memory-head">우리가 한 것 <em id="doneCount"></em><span class="memory-go">›</span></span>
-        <ul class="memory-peek" id="memoryPeek"></ul>
-      </button>
-
-      <form class="todo-add" id="todoForm">
-        <div class="who" role="radiogroup" aria-label="추가한 사람">
+    <div class="cal-sheet-body">
+      <div id="sheetPhoto"></div>
+      <ul class="cal-evlist" id="sheetEvents"></ul>
+      <p class="cal-sheet-status" id="sheetStatus"></p>
+      <form class="cal-add" id="calForm">
+        <div class="who" role="radiogroup" aria-label="넣는 사람">
           <label><input type="radio" name="who" value="희찬" checked><span>희찬</span></label>
           <label><input type="radio" name="who" value="유주"><span>유주</span></label>
+          <label><input type="radio" name="who" value="우리"><span>우리</span></label>
         </div>
-        <div class="todo-add-row">
-          <input type="text" id="todoText" maxlength="100" placeholder="하고 싶은 거 적기" autocomplete="off">
-          <button type="submit" id="todoSubmit" aria-label="추가">+</button>
+        <div class="cal-add-row">
+          <input type="text" id="calText" maxlength="40" placeholder="일정 적기" autocomplete="off">
+          <button type="submit" id="calSubmit" aria-label="추가">+</button>
         </div>
+        <label class="cal-anniv">
+          <input type="checkbox" id="calAnniv">
+          <span>기념일로 — 매년 반복되고 홈에 표시됩니다</span>
+        </label>
       </form>
-    </section>
-
-    <!-- 우리가 한 것 -->
-    <section id="doneScreen" hidden>
-      <p class="todo-done-title">우리가 한 것</p>
-      <ul class="todo-list done-list" id="doneList"></ul>
-      <button type="button" class="todo-back" id="doneBackBtn">← 하고 싶은 것으로</button>
-    </section>
-  </main>
+    </div>
+  </section>
 
   <nav class="tabbar" aria-label="주요 메뉴">
     <a href="../">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></span>
       <span>홈</span>
     </a>
-    <a href="../calendar/">
+    <a href="../calendar/" aria-current="page">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM4 10h16M9 3v4M15 3v4"/></svg></span>
       <span>달력</span>
     </a>
@@ -66,7 +85,7 @@
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg><i class="dot" id="notesDot" hidden></i></span>
       <span>글</span>
     </a>
-    <a href="../todo/" aria-current="page">
+    <a href="../todo/">
       <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>
       <span>위시</span>
     </a>
@@ -77,6 +96,6 @@
   </nav>
 
   <script src="../main.js"></script>
-  <script src="todo.js"></script>
+  <script src="calendar.js"></script>
 </body>
 </html>

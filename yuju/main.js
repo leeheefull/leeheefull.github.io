@@ -164,9 +164,9 @@ if (ddayEl) {
 // note 시트에서 가장 최근 글의 시각 하나만 받아 마지막으로 본 값과 비교한다.
 // 값의 형식은 신경쓰지 않는다. 같은 쿼리의 결과끼리만 비교하므로 달라지기만 하면 새 글이다.
 // 전체 CSV를 받아 파싱하지 않는 덕에 글 안의 줄바꿈도 문제가 되지 않는다.
-const NOTE_SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
+const YUJU_SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const NOTE_STAMP_URL =
-  `https://docs.google.com/spreadsheets/d/${NOTE_SHEET_ID}/gviz/tq` +
+  `https://docs.google.com/spreadsheets/d/${YUJU_SHEET_ID}/gviz/tq` +
   `?tqx=out:csv&sheet=note&tq=${encodeURIComponent("select max(A)")}`;
 
 const SEEN_KEY = "yuju:noteSeen";
@@ -209,3 +209,68 @@ async function syncNoteDot() {
 paintDot(); // 캐시로 먼저 그려서 점이 늦게 튀어나오지 않게 한다
 // 홈과 글 화면에서만 갱신한다. 위시·단어장까지 매번 요청할 이유가 없다.
 if (ddayEl || onNotesPage) syncNoteDot();
+
+// ── 홈: 가장 가까운 기념일 칩 ──
+// calendar 탭에서 kind 가 anniv 인 줄만 본다. 매년 반복이라 올해 날짜가 지났으면 내년으로 넘긴다.
+const annivChip = document.getElementById("annivChip");
+const ANNIV_KEY = "yuju:annivChip";
+const ANNIV_MAX_DAYS = 90; // 이보다 멀면 안 띄운다. 계속 떠 있으면 배경이 된다
+
+const ANNIV_URL =
+  `https://docs.google.com/spreadsheets/d/${YUJU_SHEET_ID}/gviz/tq` +
+  `?tqx=out:csv&sheet=calendar&tq=${encodeURIComponent("select B, D where C = 'anniv'")}`;
+
+function paintChip() {
+  if (!annivChip) return;
+  const cached = readStore(ANNIV_KEY);
+  annivChip.hidden = !cached;
+  if (cached) annivChip.textContent = cached;
+}
+
+// gviz 가 텍스트 열을 날짜 셀로 바꿔 보낼 때가 있어 두 형식을 모두 받는다
+function annivMonthDay(raw) {
+  const s = String(raw).trim();
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (!m) m = /^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})/.exec(s);
+  return m ? [Number(m[2]), Number(m[3])] : null;
+}
+
+async function syncAnnivChip() {
+  let text;
+  try {
+    const res = await fetch(ANNIV_URL, { cache: "no-store" });
+    text = await res.text();
+  } catch {
+    return; // 못 받으면 캐시로 그린 상태를 그대로 둔다
+  }
+
+  const [ty, tm, td] = kstFmt.format(new Date()).split("-").map(Number);
+  const todayUTC = Date.UTC(ty, tm - 1, td);
+
+  let best = null;
+  for (const line of text.trim().split(/\r?\n/)) {
+    const cells = line.split('","').map((c) => c.replace(/^"|"$/g, ""));
+    if (cells.length < 2) continue;
+    const md = annivMonthDay(cells[0]);
+    const title = (cells[1] || "").trim();
+    if (!md || !title) continue;
+
+    // 올해 것이 지났으면 내년 같은 날이 다음 기념일이다
+    let next = Date.UTC(ty, md[0] - 1, md[1]);
+    if (next < todayUTC) next = Date.UTC(ty + 1, md[0] - 1, md[1]);
+    const days = Math.round((next - todayUTC) / 86400000);
+    if (days > ANNIV_MAX_DAYS) continue;
+    if (!best || days < best.days) best = { days, title };
+  }
+
+  const label = best
+    ? (best.days === 0 ? `오늘은 ${best.title} 🎉` : `${best.title} · ${best.days}일 남음`)
+    : "";
+  writeStore(ANNIV_KEY, label);
+  paintChip();
+}
+
+if (annivChip) {
+  paintChip();     // 캐시로 먼저 그려서 칩이 늦게 튀어나오지 않게 한다
+  syncAnnivChip(); // 그다음 네트워크로 갱신
+}
