@@ -18,11 +18,8 @@
   <link rel="stylesheet" href="../styles.css">
 </head>
 <body class="page-todo">
-  <canvas id="hearts"></canvas>
-
   <main class="todo">
     <header class="notes-header">
-      <a class="back" href="../" aria-label="홈으로">←</a>
       <h1>하고 싶은 것</h1>
     </header>
 
@@ -55,6 +52,25 @@
       <button type="button" class="todo-back" id="doneBackBtn">← 하고 싶은 것으로</button>
     </section>
   </main>
+
+  <nav class="tabbar" aria-label="주요 메뉴">
+    <a href="../">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg></span>
+      <span>홈</span>
+    </a>
+    <a href="../notes/">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg><i class="dot" id="notesDot" hidden></i></span>
+      <span>글</span>
+    </a>
+    <a href="../todo/" aria-current="page">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span>
+      <span>위시</span>
+    </a>
+    <a href="../spain-voca/">
+      <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h7v15H4zM13 5h7v15h-7z"/></svg></span>
+      <span>단어</span>
+    </a>
+  </nav>
 
   <script src="../main.js"></script>
   <script src="todo.js"></script>
