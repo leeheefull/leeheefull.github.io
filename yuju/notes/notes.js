@@ -1,9 +1,9 @@
-const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
-// note 탭이 테이블, 1행은 헤더: created_at | name | message
-const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=note`;
-// 글쓰기 API: 시트에 붙은 Apps Script 웹 앱 URL. 비어 있으면 글쓰기가 잠긴다.
-const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbxfx8HtbjZRRC5G_F3ej3Z2E-NHPjFwpL85vI14lM4Gkdjt58jBN7EXFA_aKAiAzQ0u/exec";
+// note 탭 1행은 헤더: created_at | name | message
+// 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
+const READ_URL = `${API_URL}?mode=tab&sheet=note`;
 
 const noteForm = document.getElementById("noteForm");
 const noteText = document.getElementById("noteText");
@@ -87,7 +87,7 @@ noteForm.addEventListener("submit", async (e) => {
   const message = noteText.value.trim();
   if (!message) return;
 
-  if (!WRITE_URL) {
+  if (!API_URL) {
     notesStatus.textContent = "글쓰기는 아직 준비 중이에요!";
     return;
   }
@@ -98,7 +98,7 @@ noteForm.addEventListener("submit", async (e) => {
 
   try {
     // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 응답은 확인하지 않는다
-    await fetch(WRITE_URL, {
+    await fetch(API_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "text/plain" },

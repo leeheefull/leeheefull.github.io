@@ -164,10 +164,10 @@ if (ddayEl) {
 // note 시트에서 가장 최근 글의 시각 하나만 받아 마지막으로 본 값과 비교한다.
 // 값의 형식은 신경쓰지 않는다. 같은 쿼리의 결과끼리만 비교하므로 달라지기만 하면 새 글이다.
 // 전체 CSV를 받아 파싱하지 않는 덕에 글 안의 줄바꿈도 문제가 되지 않는다.
-const YUJU_SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
-const NOTE_STAMP_URL =
-  `https://docs.google.com/spreadsheets/d/${YUJU_SHEET_ID}/gviz/tq` +
-  `?tqx=out:csv&sheet=note&tq=${encodeURIComponent("select max(A)")}`;
+// 페이지 스크립트들이 API_URL 을 쓰므로 여기서는 다른 이름을 쓴다. 전역이 하나라 겹치면 둘 다 죽는다
+const YUJU_API =
+  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
+const NOTE_STAMP_URL = `${YUJU_API}?mode=note-stamp`;
 
 const SEEN_KEY = "yuju:noteSeen";
 const LATEST_KEY = "yuju:noteLatest";
@@ -216,9 +216,7 @@ const annivChip = document.getElementById("annivChip");
 const ANNIV_KEY = "yuju:annivChip";
 const ANNIV_MAX_DAYS = 90; // 이보다 멀면 안 띄운다. 계속 떠 있으면 배경이 된다
 
-const ANNIV_URL =
-  `https://docs.google.com/spreadsheets/d/${YUJU_SHEET_ID}/gviz/tq` +
-  `?tqx=out:csv&sheet=calendar&tq=${encodeURIComponent("select B, D where C = 'anniv'")}`;
+const ANNIV_URL = `${YUJU_API}?mode=anniv`;
 
 function paintChip() {
   if (!annivChip) return;

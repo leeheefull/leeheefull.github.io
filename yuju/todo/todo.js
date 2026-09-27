@@ -1,10 +1,10 @@
-const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 // to-do-list 탭 컬럼: 1 id | 2 created_at | 3 who | 4 text | 5 done_at
 // 완료 여부는 done_at 하나로 판단한다(비어 있으면 아직 안 한 것). 별도 플래그를 두면 둘이 어긋난다.
-const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=to-do-list`;
-// to-do 액션이 들어간 배포. 스크립트를 새 배포로 올리면 주소가 바뀌므로 여기도 같이 갈아야 한다.
-const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbxfx8HtbjZRRC5G_F3ej3Z2E-NHPjFwpL85vI14lM4Gkdjt58jBN7EXFA_aKAiAzQ0u/exec";
+// 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
+const READ_URL = `${API_URL}?mode=tab&sheet=to-do-list`;
 
 const todoStatus = document.getElementById("todoStatus");
 const todoList = document.getElementById("todoList");
@@ -111,7 +111,7 @@ function merge(fromSheet) {
 function post(payload) {
   // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 결과는 읽을 수 없다.
   // 그래서 성공 여부는 잠시 뒤 시트를 다시 읽어서 확인한다.
-  fetch(WRITE_URL, {
+  fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },

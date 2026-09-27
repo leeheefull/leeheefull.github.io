@@ -1,11 +1,11 @@
-const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 // calendar 탭 컬럼: 1 id | 2 date | 3 kind | 4 title | 5 who | 6 photo_id | 7 created_at
-// kind 가 event/anniv 이면 일정, photo 면 그 날의 사진(하루 한 장, date 가 키).
+// kind 가 event/anniv 이면 일정, photo 면 사진(하루 여러 장, 행마다 id 가 키).
 // 일정과 사진을 한 탭에 두는 건 이 화면이 둘을 항상 같이 쓰기 때문이다.
-const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=calendar`;
-// 캘린더 액션이 들어간 배포. 스크립트를 새 배포로 올리면 여기도 같이 갈아야 한다.
-const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbxfx8HtbjZRRC5G_F3ej3Z2E-NHPjFwpL85vI14lM4Gkdjt58jBN7EXFA_aKAiAzQ0u/exec";
+// 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
+const READ_URL = `${API_URL}?mode=tab&sheet=calendar`;
 
 // 드라이브는 크기를 지정한 썸네일을 그냥 내준다. 칸은 50px이라 w120이면 충분하고,
 // 한 달에 31장을 부르므로 원본을 쓰면 데이터가 수십 배로 뛴다.
@@ -446,7 +446,7 @@ async function load(quiet) {
 function post(payload) {
   // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 결과를 읽을 수 없다.
   // 성공 여부는 잠시 뒤 시트를 다시 읽어서 확인한다.
-  fetch(WRITE_URL, {
+  fetch(API_URL, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },
