@@ -36,13 +36,23 @@ jobs:
         run: |
           mkdir -p _site
           touch _site/.nojekyll
+
+          # 리포는 프로젝트별로 나눠 두고, 여기서 예전과 같은 주소로 되돌려 놓는다.
+          # 이미 공유된 링크가 있어서 주소는 바뀌면 안 된다.
+
+          # 랜딩 자산만 루트로. index.html 은 아래 암호화 단계가 따로 넣는다
+          rsync -a --exclude 'index.html' landing/ _site/
+
+          # 읽을거리는 /pages/ 가 아니라 루트에 둔다. 공유 링크에서 파일명을 지웠을 때
+          # 목록이 아니라 비밀번호 화면으로 떨어지게 하려는 것이다
+          rsync -a pages/posts/ _site/
+          rsync -a pages/assets/ _site/assets/
+          rsync -a --exclude 'posts' --exclude 'assets' pages/ _site/pages/
+
           # apps-script 는 Apps Script 편집기에 붙여넣는 원본이라 사이트에 올리지 않는다
           rsync -a --exclude 'apps-script' yuju/ _site/yuju/
+
           rsync -a portfolio/dist/ _site/portfolio/
-          rsync -a pages/ _site/pages/
-          rsync -a assets/ _site/assets/
-          cp favicon.svg site.webmanifest icon-192.png icon-512.png apple-touch-icon.png _site/
-          find . -maxdepth 1 -name '*.html' ! -name 'index.html' -exec cp {} _site/ \;
 
       - name: Encrypt index page
         env:
@@ -52,9 +62,11 @@ jobs:
             echo "SITE_PASSWORD secret is not set" >&2
             exit 1
           fi
-          npx -y staticrypt index.html -p "$SITE_PASSWORD" -d _site \
+          # landing 안에서 실행해야 결과가 _site/landing/ 이 아니라 _site/ 로 떨어진다
+          cd landing
+          npx -y staticrypt index.html -p "$SITE_PASSWORD" -d ../_site \
             --short --remember 30 \
-            --template .github/staticrypt-template.html \
+            --template ../.github/staticrypt-template.html \
             --template-title "ACCESS TERMINAL" \
             --template-remember "keep access token (30 days)"
 
