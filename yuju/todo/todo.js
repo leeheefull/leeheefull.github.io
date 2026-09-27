@@ -1,10 +1,9 @@
 // to-do-list 탭 컬럼: 1 id | 2 created_at | 3 who | 4 text | 5 done_at
 // 완료 여부는 done_at 하나로 판단한다(비어 있으면 아직 안 한 것). 별도 플래그를 두면 둘이 어긋난다.
 // 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
-// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
-const READ_URL = `${API_URL}?mode=tab&sheet=to-do-list`;
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다.
+// 배포 주소와 캐시는 store.js 가 갖고 있다.
+const SHEET = "to-do-list";
 
 const todoStatus = document.getElementById("todoStatus");
 const todoList = document.getElementById("todoList");
@@ -111,7 +110,7 @@ function merge(fromSheet) {
 function post(payload) {
   // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 결과는 읽을 수 없다.
   // 그래서 성공 여부는 잠시 뒤 시트를 다시 읽어서 확인한다.
-  fetch(API_URL, {
+  fetch(YUJU_API, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },
@@ -231,12 +230,12 @@ doneBackBtn.addEventListener("click", () => {
   window.scrollTo(0, 0);
 });
 
-async function load() {
+async function load(quiet) {
   try {
-    const res = await fetch(READ_URL, { cache: "no-store" });
-    merge(parseSheet(await res.text()));
+    merge(parseSheet(await fetchSheet(SHEET)));
   } catch {
-    todoStatus.textContent = "불러오지 못했어요. 잠시 후 다시 열어주세요.";
+    // 캐시로 이미 목록이 떠 있으면 굳이 실패를 알리지 않는다
+    if (!quiet) todoStatus.textContent = "불러오지 못했어요. 잠시 후 다시 열어주세요.";
     return;
   }
   render();
@@ -246,4 +245,10 @@ async function load() {
   if (retrying) scheduleResync(5000);
 }
 
-load();
+// 홈에서 미리 받아뒀거나 지난번에 읽어둔 게 있으면 먼저 그린다. 이어지는 읽기가 덮는다
+const cached = cachedSheet(SHEET);
+if (cached) {
+  merge(parseSheet(cached));
+  render();
+}
+load(Boolean(cached));

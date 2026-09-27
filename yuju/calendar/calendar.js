@@ -2,10 +2,9 @@
 // kind 가 event/anniv 이면 일정, photo 면 사진(하루 여러 장, 행마다 id 가 키).
 // 일정과 사진을 한 탭에 두는 건 이 화면이 둘을 항상 같이 쓰기 때문이다.
 // 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
-// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
-const READ_URL = `${API_URL}?mode=tab&sheet=calendar`;
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다.
+// 배포 주소와 캐시는 store.js 가 갖고 있다.
+const SHEET = "calendar";
 
 // 드라이브는 크기를 지정한 썸네일을 그냥 내준다. 칸은 50px이라 w120이면 충분하고,
 // 한 달에 31장을 부르므로 원본을 쓰면 데이터가 수십 배로 뛴다.
@@ -405,29 +404,6 @@ function closeSheet() {
 }
 
 /* ── 읽기 ── */
-// Apps Script 는 잠들었다 깨느라 3초 남짓 걸린다. 그 사이 빈 달력만 보는 게 제일 답답해서
-// 마지막으로 읽은 걸 기기에 두고, 열면 그걸 먼저 그린 뒤 뒤에서 조용히 갱신한다.
-// 시트가 진실이고 이건 어디까지나 먼저 보여주는 그림이다.
-const CACHE_KEY = "yuju-cal-rows";
-
-function readCache() {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    const list = raw ? JSON.parse(raw) : null;
-    return Array.isArray(list) ? list : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeCache(list) {
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(list));
-  } catch {
-    // 저장 공간이 없거나 사파리 비공개 모드면 그냥 캐시 없이 산다
-  }
-}
-
 function newId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -452,10 +428,7 @@ function merge(fromSheet) {
 
 async function load(quiet) {
   try {
-    const res = await fetch(READ_URL, { cache: "no-store" });
-    const fromSheet = parseSheet(await res.text());
-    writeCache(fromSheet);
-    merge(fromSheet);
+    merge(parseSheet(await fetchSheet(SHEET)));
     calStatus.hidden = true;
   } catch {
     if (!quiet) {
@@ -471,7 +444,7 @@ async function load(quiet) {
 function post(payload) {
   // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 결과를 읽을 수 없다.
   // 성공 여부는 잠시 뒤 시트를 다시 읽어서 확인한다.
-  fetch(API_URL, {
+  fetch(YUJU_API, {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "text/plain" },
@@ -632,11 +605,12 @@ calForm.addEventListener("submit", (e) => {
   setTimeout(() => load(true), 1500);
 });
 
-// 캐시가 있으면 기다리지 않고 바로 그린다. 이어지는 load 가 시트 내용으로 덮는다.
-// 캐시가 없어도 격자는 먼저 그려둔다 — 빈 카드보다 날짜라도 보이는 게 낫다
-const cached = readCache();
+// 홈에서 미리 받아뒀거나 지난번에 읽어둔 게 있으면 기다리지 않고 바로 그린다.
+// 이어지는 load 가 시트 내용으로 덮는다. 캐시가 없어도 격자는 먼저 그려둔다 —
+// 빈 카드보다 날짜라도 보이는 게 낫다.
+const cached = cachedSheet(SHEET);
 if (cached) {
-  rows = cached;
+  rows = parseSheet(cached);
   calStatus.hidden = true;
 }
 render();

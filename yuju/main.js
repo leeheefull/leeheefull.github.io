@@ -164,9 +164,7 @@ if (ddayEl) {
 // note 시트에서 가장 최근 글의 시각 하나만 받아 마지막으로 본 값과 비교한다.
 // 값의 형식은 신경쓰지 않는다. 같은 쿼리의 결과끼리만 비교하므로 달라지기만 하면 새 글이다.
 // 전체 CSV를 받아 파싱하지 않는 덕에 글 안의 줄바꿈도 문제가 되지 않는다.
-// 페이지 스크립트들이 API_URL 을 쓰므로 여기서는 다른 이름을 쓴다. 전역이 하나라 겹치면 둘 다 죽는다
-const YUJU_API =
-  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
+// YUJU_API 와 readStore/writeStore 는 store.js 것을 쓴다
 const NOTE_STAMP_URL = `${YUJU_API}?mode=note-stamp`;
 
 const SEEN_KEY = "yuju:noteSeen";
@@ -174,14 +172,6 @@ const LATEST_KEY = "yuju:noteLatest";
 
 const notesDot = document.getElementById("notesDot");
 const onNotesPage = !!document.getElementById("noteList");
-
-// 사파리 프라이빗 모드에서는 localStorage 쓰기가 예외를 던진다
-function readStore(key) {
-  try { return localStorage.getItem(key); } catch { return null; }
-}
-function writeStore(key, value) {
-  try { localStorage.setItem(key, value); } catch { /* 저장 못 해도 동작은 한다 */ }
-}
 
 function paintDot() {
   if (!notesDot) return;
@@ -272,3 +262,10 @@ if (annivChip) {
   paintChip();     // 캐시로 먼저 그려서 칩이 늦게 튀어나오지 않게 한다
   syncAnnivChip(); // 그다음 네트워크로 갱신
 }
+
+// ── 홈: 네 탭을 미리 받아둔다 ──
+// 앱스크립트는 한 번 읽는 데 2초쯤 걸리는데, 그게 콜드스타트가 아니라 매번 붙는 고정 비용이다.
+// 홈의 하트를 보는 동안 미리 받아두면 탭을 눌렀을 때 기다릴 게 없다. 넷을 동시에 쏘므로
+// 하나 받는 시간과 비슷하게 끝난다(실측 3.5초, 대부분 단어장 183KB 때문).
+// 홈에서만 한다 — 탭에서 탭으로 옮길 때까지 미리 받으면 데이터만 축낸다.
+if (ddayEl) prefetchSheets(["calendar", "note", "to-do-list", "spain-voca"]);

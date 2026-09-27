@@ -1,9 +1,8 @@
 // note 탭 1행은 헤더: created_at | name | message
 // 앱은 시트를 직접 읽지 않는다. 읽기도 쓰기도 Apps Script 를 거치므로
-// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다. 새 배포를 올리면 이 주소만 갈면 된다.
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbz1wxRhqnlcgD6wFhNTZX82AQFo_OxNx-lSQmczyBEzdhe-WOrDoNoHibpjCk05m6I/exec";
-const READ_URL = `${API_URL}?mode=tab&sheet=note`;
+// 시트 주소가 여기 없고, 시트를 비공개로 둘 수 있다.
+// 배포 주소와 캐시는 store.js 가 갖고 있다.
+const SHEET = "note";
 
 const noteForm = document.getElementById("noteForm");
 const noteText = document.getElementById("noteText");
@@ -72,12 +71,12 @@ function renderNotes(csv) {
   }
 }
 
-async function loadNotes() {
+async function loadNotes(quiet) {
   try {
-    const res = await fetch(READ_URL, { cache: "no-store" });
-    renderNotes(await res.text());
+    renderNotes(await fetchSheet(SHEET));
   } catch {
-    notesStatus.textContent = "글을 불러오지 못했어요. 잠시 후 다시 열어주세요.";
+    // 캐시로 이미 글이 떠 있으면 굳이 실패를 알리지 않는다
+    if (!quiet) notesStatus.textContent = "글을 불러오지 못했어요. 잠시 후 다시 열어주세요.";
   }
 }
 
@@ -87,18 +86,13 @@ noteForm.addEventListener("submit", async (e) => {
   const message = noteText.value.trim();
   if (!message) return;
 
-  if (!API_URL) {
-    notesStatus.textContent = "글쓰기는 아직 준비 중이에요!";
-    return;
-  }
-
   const name = noteForm.elements.who.value;
   noteSubmit.disabled = true;
   notesStatus.textContent = "남기는 중...";
 
   try {
     // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 응답은 확인하지 않는다
-    await fetch(API_URL, {
+    await fetch(YUJU_API, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "text/plain" },
@@ -114,4 +108,7 @@ noteForm.addEventListener("submit", async (e) => {
   }
 });
 
-loadNotes();
+// 홈에서 미리 받아뒀거나 지난번에 읽어둔 게 있으면 먼저 그린다. 이어지는 읽기가 덮는다
+const cached = cachedSheet(SHEET);
+if (cached) renderNotes(cached);
+loadNotes(Boolean(cached));
