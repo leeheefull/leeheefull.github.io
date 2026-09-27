@@ -5,7 +5,7 @@ const SHEET_ID = "104A_zVF_ECnkXugsAEqP5sTFCUII9UTMuSU2ditiLjo";
 const READ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=calendar`;
 // 캘린더 액션이 들어간 배포. 스크립트를 새 배포로 올리면 여기도 같이 갈아야 한다.
 const WRITE_URL =
-  "https://script.google.com/macros/s/AKfycbzct858fqTJYMRpc6dARg2q3TLjSiNQwRFPDK9m2jnvi3Pa1gmRTAb9VFIuz9lUl5gC/exec";
+  "https://script.google.com/macros/s/AKfycbyRTj7Dqlu_x19vxo1RsW0i0P3Oh-IPJPfRDcIT41S-lj98XaMUXYlwvJtWeU1R1MfD/exec";
 
 // 드라이브는 크기를 지정한 썸네일을 그냥 내준다. 칸은 50px이라 w120이면 충분하고,
 // 한 달에 31장을 부르므로 원본을 쓰면 데이터가 수십 배로 뛴다.
