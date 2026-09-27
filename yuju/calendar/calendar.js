@@ -309,6 +309,27 @@ function renderSheet() {
   }
 }
 
+/* iOS 사파리는 하단 도구막대가, 입력할 때는 키보드가 fixed 요소를 덮는다.
+   bottom:0 은 레이아웃 뷰포트 기준이라 시트 아래쪽(입력칸과 + 버튼)이 그 뒤로 들어간다.
+   visualViewport 로 실제 보이는 영역을 재서 그 안에 맞춘다. */
+function fitSheetToViewport() {
+  const vv = window.visualViewport;
+  if (!vv || calSheet.hidden) return;
+  const covered = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+  calSheet.style.bottom = covered + "px";
+  calSheet.style.maxHeight = Math.round(vv.height * 0.88) + "px";
+}
+
+function clearSheetFit() {
+  calSheet.style.bottom = "";
+  calSheet.style.maxHeight = "";
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", fitSheetToViewport);
+  window.visualViewport.addEventListener("scroll", fitSheetToViewport);
+}
+
 function openSheet(key) {
   selected = key;
   sheetStatus.textContent = "";
@@ -317,6 +338,7 @@ function openSheet(key) {
   renderSheet();
   calSheet.hidden = false;
   calBackdrop.hidden = false;
+  fitSheetToViewport();
   requestAnimationFrame(() => calSheet.classList.add("open"));
 }
 
@@ -324,7 +346,11 @@ function closeSheet() {
   calSheet.classList.remove("open");
   calBackdrop.hidden = true;
   selected = null;
-  setTimeout(() => { if (!selected) calSheet.hidden = true; }, 280);
+  setTimeout(() => {
+    if (selected) return;
+    calSheet.hidden = true;
+    clearSheetFit();
+  }, 280);
 }
 
 /* ── 읽기 ── */
