@@ -161,12 +161,11 @@ if (ddayEl) {
 }
 
 // ── 글 탭의 안 읽음 점 ──
-// note 시트에서 가장 최근 글의 시각 하나만 받아 마지막으로 본 값과 비교한다.
-// 값의 형식은 신경쓰지 않는다. 같은 쿼리의 결과끼리만 비교하므로 달라지기만 하면 새 글이다.
-// 전체 CSV를 받아 파싱하지 않는 덕에 글 안의 줄바꿈도 문제가 되지 않는다.
-// YUJU_API 와 readStore/writeStore 는 store.js 것을 쓴다
-const NOTE_STAMP_URL = `${YUJU_API}?mode=note-stamp`;
-
+// note 탭에서 가장 최근 글의 시각(created_at) 하나만 뽑아 마지막으로 본 값과 비교한다.
+// 시각은 서버가 "yyyy-MM-dd HH:mm" 로 찍으므로 글자 순서가 곧 시간 순서다 — 최댓값이 최신 글이고,
+// 예전에 저장해 둔 SEEN 값도 같은 형식이라 그대로 비교된다.
+// 따로 묻지 않는다. 탭 내용은 store.js 가 받아올 때마다 "yuju:tab" 으로 알려주니 거기서 뽑는다.
+// readStore/writeStore, cachedTab 은 store.js 것을 쓴다
 const SEEN_KEY = "yuju:noteSeen";
 const LATEST_KEY = "yuju:noteLatest";
 
@@ -179,43 +178,41 @@ function paintDot() {
   notesDot.hidden = !latest || latest === readStore(SEEN_KEY);
 }
 
-async function syncNoteDot() {
-  let stamp;
-  try {
-    const res = await fetch(NOTE_STAMP_URL, { cache: "no-store" });
-    // 헤더 한 줄 + 값 한 줄짜리 CSV
-    const line = (await res.text()).trim().split(/\r?\n/).pop() || "";
-    stamp = line.replace(/^"|"$/g, "").trim();
-  } catch {
-    return; // 못 받으면 캐시로 그린 상태를 그대로 둔다
+// 헤더(1행)와 빈 줄은 뺀다. 글이 하나도 없으면 ""
+function latestNoteStamp(rows) {
+  let latest = "";
+  for (const r of rows) {
+    if (!Array.isArray(r)) continue;
+    const at = String(r[0] || "").trim();
+    if (!at || at === "created_at") continue;
+    if (at > latest) latest = at;
   }
-  if (!stamp) return;
+  return latest;
+}
 
+function syncNoteDot(rows) {
+  const stamp = latestNoteStamp(rows);
+  if (!stamp) return; // 비었으면 지난 값을 그대로 둔다
   writeStore(LATEST_KEY, stamp);
   if (onNotesPage) writeStore(SEEN_KEY, stamp); // 글 화면에 들어왔으면 읽은 것으로 친다
   paintDot();
 }
 
-paintDot(); // 캐시로 먼저 그려서 점이 늦게 튀어나오지 않게 한다
-// 홈과 글 화면에서만 갱신한다. 위시·단어장까지 매번 요청할 이유가 없다.
-if (ddayEl || onNotesPage) syncNoteDot();
+paintDot(); // 저장해 둔 값으로 먼저 그려서 점이 늦게 튀어나오지 않게 한다
+// 글 화면은 캐시로도 바로 읽은 처리를 한다. 이미 더 새 걸 가졌으면 다시 받아도 알림이 안 오기 때문이다
+if (onNotesPage) {
+  const cachedNotes = cachedTab("note");
+  if (cachedNotes) syncNoteDot(cachedNotes);
+}
 
 // ── 홈: 가장 가까운 기념일 칩 ──
 // calendar 탭에서 kind 가 anniv 인 줄만 본다. 매년 반복이라 올해 날짜가 지났으면 내년으로 넘긴다.
+// calendar 컬럼: 0 id | 1 date | 2 kind | 3 title ...
+// 칩 문구를 따로 저장하지 않는다. 캐시된 탭에서 매번 계산해도 몇십 줄이라 바로 끝난다.
 const annivChip = document.getElementById("annivChip");
-const ANNIV_KEY = "yuju:annivChip";
 const ANNIV_MAX_DAYS = 90; // 이보다 멀면 안 띄운다. 계속 떠 있으면 배경이 된다
 
-const ANNIV_URL = `${YUJU_API}?mode=anniv`;
-
-function paintChip() {
-  if (!annivChip) return;
-  const cached = readStore(ANNIV_KEY);
-  annivChip.hidden = !cached;
-  if (cached) annivChip.textContent = cached;
-}
-
-// gviz 가 텍스트 열을 날짜 셀로 바꿔 보낼 때가 있어 두 형식을 모두 받는다
+// 날짜 칸이 날짜 셀로 바뀌어 다른 꼴로 올 때가 있어 두 형식을 모두 받는다
 function annivMonthDay(raw) {
   const s = String(raw).trim();
   let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
@@ -223,24 +220,16 @@ function annivMonthDay(raw) {
   return m ? [Number(m[2]), Number(m[3])] : null;
 }
 
-async function syncAnnivChip() {
-  let text;
-  try {
-    const res = await fetch(ANNIV_URL, { cache: "no-store" });
-    text = await res.text();
-  } catch {
-    return; // 못 받으면 캐시로 그린 상태를 그대로 둔다
-  }
-
+function paintChip(rows) {
+  if (!annivChip) return;
   const [ty, tm, td] = kstFmt.format(new Date()).split("-").map(Number);
   const todayUTC = Date.UTC(ty, tm - 1, td);
 
   let best = null;
-  for (const line of text.trim().split(/\r?\n/)) {
-    const cells = line.split('","').map((c) => c.replace(/^"|"$/g, ""));
-    if (cells.length < 2) continue;
-    const md = annivMonthDay(cells[0]);
-    const title = (cells[1] || "").trim();
+  for (const r of rows) {
+    if (!Array.isArray(r) || String(r[2] || "").trim() !== "anniv") continue;
+    const md = annivMonthDay(r[1] || "");
+    const title = String(r[3] || "").trim();
     if (!md || !title) continue;
 
     // 올해 것이 지났으면 내년 같은 날이 다음 기념일이다
@@ -251,21 +240,31 @@ async function syncAnnivChip() {
     if (!best || days < best.days) best = { days, title };
   }
 
-  const label = best
+  annivChip.hidden = !best;
+  annivChip.textContent = best
     ? (best.days === 0 ? `오늘은 ${best.title} 🎉` : `${best.title} · ${best.days}일 남음`)
     : "";
-  writeStore(ANNIV_KEY, label);
-  paintChip();
 }
 
 if (annivChip) {
-  paintChip();     // 캐시로 먼저 그려서 칩이 늦게 튀어나오지 않게 한다
-  syncAnnivChip(); // 그다음 네트워크로 갱신
+  const cachedCal = cachedTab("calendar");
+  if (cachedCal) paintChip(cachedCal); // 캐시로 먼저 그려서 칩이 늦게 튀어나오지 않게 한다
 }
 
+// 새 탭 내용이 받아들여질 때마다(홈 미리 받기, 각 탭의 읽기·쓰기) 점과 칩을 다시 계산한다
+window.addEventListener("yuju:tab", (e) => {
+  const { name, rows } = (e && e.detail) || {};
+  if (!Array.isArray(rows)) return;
+  if (name === "note") syncNoteDot(rows);
+  else if (name === "calendar") paintChip(rows);
+});
+
 // ── 홈: 네 탭을 미리 받아둔다 ──
-// 앱스크립트는 한 번 읽는 데 2초쯤 걸리는데, 그게 콜드스타트가 아니라 매번 붙는 고정 비용이다.
-// 홈의 하트를 보는 동안 미리 받아두면 탭을 눌렀을 때 기다릴 게 없다. 넷을 동시에 쏘므로
-// 하나 받는 시간과 비슷하게 끝난다(실측 3.5초, 대부분 단어장 183KB 때문).
+// 앱스크립트는 한 번 부르는 데 1~2초가 고정으로 붙는다. 네 탭을 한 요청으로 묶어 받으면
+// 그 비용을 한 번만 낸다. 받은 탭은 위의 "yuju:tab" 으로 점과 칩도 갱신한다.
 // 홈에서만 한다 — 탭에서 탭으로 옮길 때까지 미리 받으면 데이터만 축낸다.
-if (ddayEl) prefetchSheets(["calendar", "note", "to-do-list", "spain-voca"]);
+if (ddayEl) {
+  prefetchTabs();
+  // 키를 기기에 못 남겨 새로 고치지 않고 잠금만 걷힌 경우, 막혔던 미리 받기를 다시 한다
+  window.addEventListener("yuju:unlocked", () => prefetchTabs());
+}

@@ -6,6 +6,8 @@
 //
 // 구글 일정 id 는 calendar 탭 8열(gcal_id)에 둔다. 지울 때 이걸로 찾는다.
 // 캘린더 쪽이 실패해도 시트 저장은 성공해야 하므로 여기 함수들은 예외를 밖으로 내지 않는다.
+// 몇 초씩 걸리므로 시트 잠금(withTab_) 밖에서 부른다. 제목은 text_ 를 거치지 않은 글을 받는다 —
+// 앞에 붙는 ' 는 시트용이라 구글 캘린더에서는 그대로 글자로 보인다.
 
 const GCAL_NAME = "희찬❤유주";
 const GCAL_ID_COL = 8;
@@ -50,7 +52,7 @@ function gcalCreate_(kind, date, title, who) {
     }
     return cal.createAllDayEvent(name, gcalDate_(date)).getId();
   } catch (err) {
-    // 앱은 no-cors 라 응답을 못 읽으니 원인은 실행 로그에만 남는다
+    // 앱에는 gcal:false 로만 알린다. 원인은 실행 로그에 남긴다
     console.warn("gcalCreate_ 실패: " + ((err && err.message) || err));
     return "";
   }
@@ -78,6 +80,9 @@ function gcalDelete_(kind, gcalId) {
 //  - CalendarApp 은 새 OAuth 범위라 이걸 돌려야 동의 창이 뜬다. 배포만으로는 안 뜬다
 //  - 8열 헤더를 붙이고, 아직 구글에 없는 기존 일정·기념일을 옮긴다
 // 이미 gcal_id 가 있는 줄은 건너뛰므로 여러 번 돌려도 중복되지 않는다.
+// 시트 값은 ' 없이 읽히므로 제목을 그대로 넘기면 된다.
+// 구글 일정을 만드는 동안은 잠금을 쥐지 않는다(앱의 쓰기가 줄줄이 막힌다). 대신 id 를 적을 때만
+// 잠그고 그 id 의 줄을 다시 찾는다 — 그 사이 앱에서 줄이 지워지거나 밀렸을 수 있다.
 function syncCalendarToGoogle() {
   // 동의 창에서 캘린더만 빼고 허용해도 실행은 된다. 그러면 일정마다 권한 오류로 조용히 실패하므로
   // 여기서 먼저 캘린더 권한을 요구해 동의 창을 다시 띄운다
@@ -99,10 +104,31 @@ function syncCalendarToGoogle() {
 
     const id = gcalCreate_(kind, calDateKey_(rows[i][1]), rows[i][3], rows[i][4]);
     if (!id) { failed++; continue; }
-    sheet.getRange(i + 2, GCAL_ID_COL).setValue(id);
-    created++;
+    if (gcalSaveId_(sheet, String(rows[i][0]), i + 2, id)) {
+      created++;
+    } else {
+      gcalDelete_(kind, id); // 그 사이 앱에서 지워졌거나 이미 채워졌다
+    }
   }
   const result = "created " + created + ", failed " + failed;
   Logger.log(result);
   return result;
+}
+
+// 만든 구글 id 를 그 일정 줄에 적는다. 줄이 없어졌거나 이미 채워져 있으면 false.
+// id 가 없는 아주 옛날 줄만 읽어둔 행 번호를 그대로 믿는다
+function gcalSaveId_(sheet, rowId, fallbackRow, gcalId) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const row = rowId ? rowOfId_(sheet, rowId) : fallbackRow;
+    if (!row) return false;
+    const cell = sheet.getRange(row, GCAL_ID_COL);
+    if (String(cell.getValue()).trim()) return false;
+    cell.setValue(gcalId);
+    SpreadsheetApp.flush();
+    return true;
+  } finally {
+    lock.releaseLock();
+  }
 }

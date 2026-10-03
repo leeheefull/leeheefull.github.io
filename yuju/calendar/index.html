@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow">
+  <!-- 이 페이지가 부르는 곳만 연다. 스크립트는 사이트 안의 파일만, 통신은 Apps Script 만 -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://drive.google.com https://*.googleusercontent.com; connect-src https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#ffd9e4">
   <link rel="icon" href="/yuju/icon.svg">
   <link rel="apple-touch-icon" href="/yuju/icon-180.png">
@@ -15,7 +18,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css">
+  <!-- 배포 직후 브라우저 캐시의 옛 스크립트와 새 페이지가 섞이지 않게, 함께 바뀌는 파일은 ?v= 를 같이 올린다 -->
+  <link rel="stylesheet" href="../styles.css?v=20261003">
 </head>
 <body class="page-cal">
 
@@ -30,7 +34,12 @@
           <button class="cal-mv" type="button" id="nextYearBtn" aria-label="1년 후">»</button>
         </div>
         <button class="cal-today" type="button" id="todayBtn">오늘</button>
+        <!-- 캐시로 먼저 그리므로 지금 것을 바로 받아보고 싶을 때 누른다. 읽는 동안 화살표가 돈다 -->
+        <button class="cal-refresh" type="button" id="refreshBtn" aria-label="새로고침" aria-busy="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-8-8c2.2 0 4.3.9 5.9 2.4L20 8.5"/><path d="M20 4v4.5h-4.5"/></svg>
+        </button>
       </div>
+      <p class="cal-flash" id="calFlash" role="status" aria-live="polite"></p>
 
       <div class="cal-who" id="whoBar">
         <button type="button" data-w="희찬" aria-pressed="true">희찬</button>
@@ -97,8 +106,8 @@
     </a>
   </nav>
 
-  <script src="../store.js"></script>
-  <script src="../main.js"></script>
-  <script src="calendar.js"></script>
+  <script src="../store.js?v=20261003"></script>
+  <script src="../main.js?v=20261003"></script>
+  <script src="calendar.js?v=20261003"></script>
 </body>
 </html>

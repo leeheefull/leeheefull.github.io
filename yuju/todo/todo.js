@@ -17,37 +17,22 @@ const doneScreen = document.getElementById("doneScreen");
 const doneList = document.getElementById("doneList");
 const doneBackBtn = document.getElementById("doneBackBtn");
 
+// 마지막으로 받아들인 시트 내용. 화면에 보이는 목록은 여기에 아직 답을 못 받은 내 변경을 얹은 것이다
+let serverItems = [];
 let items = [];
-// 시트에 아직 반영되지 않은 내 변경. id -> { doneAt, tries }
-// tries는 다시 읽어본 횟수. 시트 반영이 원래 몇 초 걸리므로 한 번 어긋났다고 실패로 보면 안 된다.
+// 응답을 기다리는 내 변경. 보낸 순서대로 얹어야 해서 순번을 키로 쓴다 —
+// 같은 항목을 빠르게 두 번 누르면 앞 요청의 답이 와도 뒤에 누른 상태가 화면에 남아야 한다.
+// 순번 -> { kind: "add", item } | { kind: "toggle", id, doneAt }
 const pending = new Map();
-const WARN_AFTER = 2; // 이만큼 확인해도 안 보이면 저장 실패로 표시
-const GIVE_UP_AFTER = 4;
-let resyncTimer = null;
+let opSeq = 0;
+// 저장에 실패한 항목. 그 줄에 경고를 띄우고, 다시 누르거나 새로 읽으면 지운다
+const failed = new Set();
+// 추가가 실패해 항목이 사라질 때 목록 위에 남기는 한마디
+let notice = "";
 
-// gviz CSV는 모든 셀을 따옴표로 감싸므로 내용의 쉼표/따옴표까지 처리한다
-function parseCsvRow(line) {
-  const cells = [];
-  let cur = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
-      else if (ch === '"') inQuotes = false;
-      else cur += ch;
-    } else if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === ",") {
-      cells.push(cur);
-      cur = "";
-    } else {
-      cur += ch;
-    }
-  }
-  cells.push(cur);
-  return cells;
-}
+// 홈 화면에 띄워둔 앱은 며칠씩 안 닫힌다. 다시 꺼냈을 때 이만큼 지났으면 새로 읽는다
+const REFETCH_MS = 60 * 1000;
+let lastFetch = 0;
 
 // main.js가 D-day용으로 이미 kstFmt를 전역에 선언한다. 같은 이름을 쓰면 스크립트 전체가 죽는다.
 const todoKstFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul" });
@@ -73,11 +58,9 @@ function prettyDate(iso) {
   return m ? `${Number(m[2])}월 ${Number(m[3])}일` : iso;
 }
 
-function parseSheet(csv) {
-  return csv
-    .trim()
-    .split(/\r?\n/)
-    .map(parseCsvRow)
+// 서버가 준 행(1행은 헤더)을 항목으로. 헤더와 id 없는 빈 줄은 거른다
+function parseSheet(rows) {
+  return rows
     .filter((r) => r[0] && r[0] !== "id")
     .map((r) => ({
       id: r[0],
@@ -88,39 +71,45 @@ function parseSheet(csv) {
     }));
 }
 
-// 시트가 진실이지만, 아직 반영 안 된 내 변경은 덮어쓰지 않는다.
-function merge(fromSheet) {
-  const byId = new Map(fromSheet.map((it) => [it.id, it]));
-
-  for (const [id, want] of pending) {
-    const onSheet = byId.get(id);
-    if (onSheet && onSheet.doneAt === want.doneAt) {
-      pending.delete(id);
-      continue;
+// 시트가 진실이고, 아직 답을 못 받은 내 변경만 그 위에 얹는다.
+// 답이 오면(성공이든 실패든) 그 변경을 빼고 다시 얹으므로, 실패하면 저절로 원래대로 돌아간다
+function rebuild() {
+  const byId = new Map(serverItems.map((it) => [it.id, it]));
+  for (const op of pending.values()) {
+    if (op.kind === "add") {
+      if (!byId.has(op.item.id)) byId.set(op.item.id, op.item);
+    } else {
+      const it = byId.get(op.id);
+      if (it) byId.set(op.id, { ...it, doneAt: op.doneAt });
     }
-    want.tries++;
-    const local = items.find((it) => it.id === id);
-    if (onSheet) byId.set(id, { ...onSheet, doneAt: want.doneAt });
-    else if (local) byId.set(id, local);
   }
-
   items = [...byId.values()];
 }
 
-function post(payload) {
-  // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 결과는 읽을 수 없다.
-  // 그래서 성공 여부는 잠시 뒤 시트를 다시 읽어서 확인한다.
-  fetch(YUJU_API, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify(payload),
-  }).catch(() => {});
+function applyRows(rows) {
+  serverItems = parseSheet(rows);
+  rebuild();
 }
 
-function scheduleResync(delay = 3000) {
-  clearTimeout(resyncTimer);
-  resyncTimer = setTimeout(load, delay); // 시트 반영까지 시간이 걸린다
+// 보내고, 답이 오면 그 변경을 내려놓는다. 서버는 쓰고 난 탭을 같이 돌려주므로 다시 읽으러 가지 않는다.
+// 늦게 도착한 옛 응답이면 rows 가 null 이다 — 그때는 지금 가진 내용을 그대로 둔다
+async function send(op, payload, onFail) {
+  const seq = ++opSeq;
+  pending.set(seq, op);
+  rebuild();
+  render(); // 시트 저장은 느리므로 화면부터 바꾼다
+  try {
+    const { rows } = await sendAction(payload, SHEET);
+    pending.delete(seq);
+    lastFetch = Date.now();
+    if (rows) serverItems = parseSheet(rows);
+  } catch (err) {
+    pending.delete(seq);
+    // 키 문제면 잠금 화면이 떠 있다. 되돌리기만 하고 말은 보태지 않는다
+    if (!(err instanceof YujuAuthError)) onFail();
+  }
+  rebuild();
+  render();
 }
 
 function row(item, done) {
@@ -140,9 +129,8 @@ function row(item, done) {
   const meta = document.createElement("p");
   meta.className = "todo-meta";
 
-  const unsaved = pending.get(item.id);
-  if (unsaved && unsaved.tries >= WARN_AFTER) {
-    meta.textContent = "저장이 확인되지 않았어요";
+  if (failed.has(item.id)) {
+    meta.textContent = "저장하지 못했어요. 다시 눌러 주세요";
     meta.classList.add("warn");
   } else {
     meta.textContent = done ? `${prettyDate(item.doneAt)}에 했어` : item.who;
@@ -164,7 +152,7 @@ function render() {
   todoList.innerHTML = "";
   for (const it of todo) todoList.append(row(it, false));
 
-  todoStatus.textContent = todo.length ? "" : "아직 없어요. 하고 싶은 걸 적어보세요!";
+  todoStatus.textContent = notice || (todo.length ? "" : "아직 없어요. 하고 싶은 걸 적어보세요!");
 
   memoryBtn.hidden = done.length === 0;
   doneCount.textContent = `${done.length}개`;
@@ -186,14 +174,17 @@ function render() {
 function toggle(id) {
   const item = items.find((it) => it.id === id);
   if (!item) return;
+  // 추가가 아직 시트에 안 닿았으면 서버는 그 항목을 못 찾는다. 추가 답이 올 때까지 기다린다
+  for (const op of pending.values()) {
+    if (op.kind === "add" && op.item.id === id) return;
+  }
 
   const doneAt = item.doneAt ? "" : todayKst();
-  item.doneAt = doneAt;
-  pending.set(id, { doneAt, tries: 0 });
-
-  render(); // 시트 저장은 느리므로 화면부터 바꾼다
-  post({ action: "todo-toggle", id, doneAt });
-  scheduleResync();
+  failed.delete(id);
+  notice = "";
+  send({ kind: "toggle", id, doneAt }, { action: "todo-toggle", id, doneAt }, () => {
+    failed.add(id);
+  });
 }
 
 todoForm.addEventListener("submit", (e) => {
@@ -209,13 +200,15 @@ todoForm.addEventListener("submit", (e) => {
     text,
     doneAt: "",
   };
-  items.push(item);
-  pending.set(item.id, { doneAt: "", tries: 0 });
   todoText.value = "";
+  notice = "";
 
-  render();
-  post({ action: "todo-add", ...item, createdAt: item.createdAt });
-  scheduleResync();
+  const { id, createdAt, who } = item;
+  send({ kind: "add", item }, { action: "todo-add", id, createdAt, who, text }, () => {
+    notice = "저장하지 못했어요. 다시 적어 주세요.";
+    // 그새 다른 걸 적고 있지 않으면 쓴 글을 돌려놓는다 — 다시 누르기만 하면 되게
+    if (!todoText.value) todoText.value = text;
+  });
 });
 
 memoryBtn.addEventListener("click", () => {
@@ -232,23 +225,33 @@ doneBackBtn.addEventListener("click", () => {
 
 async function load(quiet) {
   try {
-    merge(parseSheet(await fetchSheet(SHEET)));
-  } catch {
+    const rows = await fetchTab(SHEET);
+    lastFetch = Date.now();
+    // null 이면 이미 더 새 걸 받아둔 상태다(쓰기 응답이 먼저 왔다든가). 그대로 둔다
+    if (!rows) return;
+    failed.clear();
+    applyRows(rows);
+  } catch (err) {
+    if (err instanceof YujuAuthError) return; // 잠금 화면이 떠 있다
     // 캐시로 이미 목록이 떠 있으면 굳이 실패를 알리지 않는다
     if (!quiet) todoStatus.textContent = "불러오지 못했어요. 잠시 후 다시 열어주세요.";
     return;
   }
   render();
-
-  // 아직 시트에서 확인 못 한 변경이 남아 있으면 조금 더 기다렸다 다시 본다
-  const retrying = [...pending.values()].some((p) => p.tries < GIVE_UP_AFTER);
-  if (retrying) scheduleResync(5000);
 }
 
+// 다시 꺼냈을 때 상대가 추가하거나 체크한 게 보이도록 새로 읽는다
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && Date.now() - lastFetch >= REFETCH_MS) load(true);
+});
+
+// 키를 기기에 못 남기는 브라우저는 새로 고치지 않고 잠금만 걷는다. 그때 처음부터 다시 읽는다
+window.addEventListener("yuju:unlocked", () => load());
+
 // 홈에서 미리 받아뒀거나 지난번에 읽어둔 게 있으면 먼저 그린다. 이어지는 읽기가 덮는다
-const cached = cachedSheet(SHEET);
+const cached = cachedTab(SHEET);
 if (cached) {
-  merge(parseSheet(cached));
+  applyRows(cached);
   render();
 }
 load(Boolean(cached));

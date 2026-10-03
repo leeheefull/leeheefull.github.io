@@ -35,29 +35,6 @@ let words = [];
 let currentBook = null;
 let quiz = null; // { scope: {mode:"all"|"fail"|"unit", book?, unit?}, deck, index, correct, wrong: [word...] }
 
-function parseCsvRow(line) {
-  const cells = [];
-  let cur = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; }
-      else if (ch === '"') inQuotes = false;
-      else cur += ch;
-    } else if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === ",") {
-      cells.push(cur);
-      cur = "";
-    } else {
-      cur += ch;
-    }
-  }
-  cells.push(cur);
-  return cells;
-}
-
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -67,11 +44,9 @@ function shuffle(arr) {
   return a;
 }
 
-function parseWords(csv) {
-  return csv
-    .trim()
-    .split(/\r?\n/)
-    .map(parseCsvRow)
+// rows 는 store.js 가 준 문자열 2차원 배열(1행 헤더 포함). 헤더는 r[2] === "spanish" 로 걸러진다
+function parseWords(rows) {
+  return rows
     .filter((r) => r[0] && r[2] && r[3] && r[2] !== "spanish")
     .map((r) => ({
       book: r[0],
@@ -83,14 +58,22 @@ function parseWords(csv) {
     }));
 }
 
-// renderMenu 는 메뉴 DOM 만 다시 그린다. 퀴즈 중에 갱신이 끝나도 화면을 빼앗지 않는다
+// renderMenu 는 메뉴 DOM 만 다시 그린다. 퀴즈 중에 갱신이 끝나도 화면을 빼앗지 않는다.
+// 진행 중인 퀴즈는 자기 deck 에 단어 객체를 따로 쥐고 있어서 words 가 바뀌어도 그대로 이어진다.
+//
+// 다른 탭과 달리 앱으로 돌아올 때 다시 읽지 않는다. 이 탭은 ~180KB 이고, 단어는
+// 폰에서 바뀌는 일이 없다(오답 숫자만 오르는데 그건 이 화면이 이미 올려 보여준다)
 async function loadWords(quiet) {
   try {
-    const list = parseWords(await fetchSheet(SHEET));
+    const rows = await fetchTab(SHEET);
+    if (!rows) return; // 이미 더 새 걸 가지고 있다 — 지금 화면이 맞다
+    const list = parseWords(rows);
     if (list.length === 0) throw new Error("empty sheet");
     words = list;
     renderMenu();
-  } catch {
+  } catch (err) {
+    // 키 문제면 잠금 화면이 이미 떠 있다. 거기에 오류 문구를 더 얹지 않는다
+    if (err instanceof YujuAuthError) return;
     // 캐시로 이미 단어가 떠 있으면 굳이 실패를 알리지 않는다
     if (!quiet) statusEl.textContent = "단어를 불러오지 못했어요. 잠시 후 다시 열어주세요.";
   }
@@ -257,14 +240,10 @@ function answer(btn, picked, word) {
 }
 
 function reportFail(word) {
-  // Apps Script는 CORS 응답을 안 주므로 no-cors로 보내고 응답은 확인하지 않는다
-  fetch(YUJU_API, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain" },
-    // 두 책에 같은 스페인어 단어가 있어서 book 없이는 엉뚱한 행의 카운트가 올라간다
-    body: JSON.stringify({ action: "fail", spanish: word.spanish, book: word.book }),
-  }).catch(() => {});
+  // 보내고 잊는다. 실패해도 퀴즈는 이어져야 하고, 서버는 탭을 돌려주지 않는다 —
+  // 180KB 를 오답마다 받을 이유가 없다. 화면의 숫자는 answer() 가 이미 올려뒀다.
+  // 두 책에 같은 스페인어 단어가 있어서 book 없이는 엉뚱한 행의 카운트가 올라간다
+  sendAction({ action: "fail", spanish: word.spanish, book: word.book }).catch(() => {});
 }
 
 function nextQuestion() {
@@ -321,9 +300,12 @@ retryBtn.addEventListener("click", () => startQuiz(quiz.scope));
 backToMenuBtn.addEventListener("click", backToMenu);
 
 // 홈에서 미리 받아뒀거나 지난번에 읽어둔 게 있으면 먼저 그린다. 이어지는 읽기가 덮는다
-const cached = cachedSheet(SHEET);
+const cached = cachedTab(SHEET);
 if (cached) {
   words = parseWords(cached);
   renderMenu();
 }
 loadWords(Boolean(cached));
+
+// 키를 기기에 못 남기는 브라우저에서 잠금을 푼 경우. 새로 고침 없이 여기서 다시 읽는다
+window.addEventListener("yuju:unlocked", () => loadWords());

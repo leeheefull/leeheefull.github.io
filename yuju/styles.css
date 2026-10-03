@@ -863,6 +863,7 @@ section {
 
 /* 사진과 색 태그가 많아서 분홍 배경 위에 그대로 두면 서로 싸운다. 흰 카드에 올린다 */
 .cal-card {
+  position: relative; /* .cal-flash 가 카드 기준으로 뜬다 */
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(255, 140, 175, 0.22);
   border-radius: 20px;
@@ -918,6 +919,75 @@ section {
 .cal-today:disabled {
   opacity: 0.32;
   cursor: default;
+}
+
+/* 새로고침. 오늘 버튼과 같은 테두리의 동그라미. 읽는 동안에는 막히지만 흐려지지 않고
+   화살표가 돈다 — 흐려지면 "누를 수 없음" 으로 읽혀서 받는 중이라는 게 안 보인다 */
+.cal-refresh {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1.3px solid #ffc2d5;
+  border-radius: 50%;
+  background: #fff;
+  color: #c2456f;
+  padding: 0;
+  cursor: pointer;
+}
+
+.cal-refresh svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cal-refresh:disabled {
+  cursor: default;
+}
+
+.cal-refresh[aria-busy="true"] svg {
+  animation: calSpin 0.9s linear infinite;
+}
+
+@keyframes calSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* 움직임을 줄인 기기에서는 돌리지 않고 흐리게만 해서 받는 중임을 알린다 */
+@media (prefers-reduced-motion: reduce) {
+  .cal-refresh[aria-busy="true"] svg { animation: none; }
+  .cal-refresh[aria-busy="true"] { opacity: 0.5; }
+}
+
+/* "방금 새로 받았어요" 같은 짧은 알림. 격자를 밀어내지 않게 카드 위에 띄운다 */
+.cal-flash {
+  position: absolute;
+  top: 46px;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -4px);
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(63, 52, 56, 0.86);
+  color: #fff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, transform 0.2s, visibility 0s 0.2s;
+}
+
+.cal-flash.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity 0.2s, transform 0.2s;
 }
 
 /* 누가 넣은 일정인지 색으로 구분한다. 눌러서 끄면 그 사람 일정만 숨는다 */
@@ -1367,4 +1437,132 @@ button.cal-sheet-photo.empty {
   color: #dba7be;
   cursor: pointer;
   padding: 2px 0 2px 4px;
+}
+
+/* ── 잠금 화면 ──
+   등록되지 않은(기기 토큰이 없는) 기기에서 페이지 전체를 덮는다. 탭바(4)와 달력 시트(6)보다 위에 둔다 */
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  /* 가운데 정렬은 .gate-card 의 margin: auto 로 한다. align-items: center 는 카드가 화면보다
+     크면(가로로 눕힌 작은 폰) 위아래가 잘려 스크롤로도 못 닿는다. margin: auto 는 넘치면 위부터 스크롤된다 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding:
+    calc(24px + env(safe-area-inset-top))
+    calc(24px + env(safe-area-inset-right))
+    calc(24px + env(safe-area-inset-bottom))
+    calc(24px + env(safe-area-inset-left));
+  background: linear-gradient(170deg, #fff5f8 0%, #ffe3ec 45%, #ffd0e0 100%);
+}
+
+.gate-card {
+  width: 100%;
+  max-width: 320px;
+  margin: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 22px 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 12px 34px rgba(233, 79, 124, 0.16);
+  text-align: center;
+}
+
+.gate-heart {
+  font-size: 34px;
+  color: #ff5a86;
+  line-height: 1;
+}
+
+.gate-card h2 {
+  font-size: 20px;
+  font-weight: normal;
+  color: #6b2b41;
+}
+
+.gate-dots {
+  display: flex;
+  gap: 12px;
+  margin: 2px 0 0;
+}
+
+.gate-dots i {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid #ff85a8;
+  transition: background 0.12s ease;
+}
+
+.gate-dots i.on {
+  background: #ff5a86;
+  border-color: #ff5a86;
+}
+
+.gate-dots.shake {
+  animation: gate-shake 0.36s ease;
+}
+
+@keyframes gate-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.gate-msg {
+  min-height: 1.4em;
+  font-size: 13px;
+  color: #a35a74;
+}
+
+.gate-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  gap: 12px 18px;
+  margin-top: 4px;
+}
+
+.gate-pad button {
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(233, 79, 124, 0.12);
+  font: inherit;
+  font-size: 24px;
+  color: #6b2b41;
+  cursor: pointer;
+}
+
+.gate-pad button:active {
+  background: #ffd0e0;
+}
+
+.gate-pad button[data-k="⌫"] {
+  background: transparent;
+  box-shadow: none;
+  font-size: 22px;
+}
+
+.gate-pad button.blank {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gate-dots.shake { animation: none; }
+}
+
+/* 가로로 눕힌 폰처럼 낮은 화면에서는 키를 줄여 스크롤 없이 한 화면에 들어오게 한다 */
+@media (max-height: 520px) {
+  .gate-card { gap: 8px; padding: 16px 18px; }
+  .gate-heart { font-size: 26px; }
+  .gate-pad { grid-template-columns: repeat(3, 52px); gap: 8px 16px; margin-top: 0; }
+  .gate-pad button { width: 52px; height: 52px; font-size: 20px; }
 }
