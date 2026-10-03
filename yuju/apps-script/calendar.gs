@@ -1,20 +1,21 @@
 // 배포된 코드가 최신인지 눈으로 확인하기 위한 표식. 코드를 고칠 때 같이 올린다
-const CAL_CODE_VERSION = "2026-09-27e";
+const CAL_CODE_VERSION = "2026-10-03a";
 
-// calendar 컬럼: 1 id | 2 date | 3 kind | 4 title | 5 who | 6 photo_id | 7 created_at
+// calendar 컬럼: 1 id | 2 date | 3 kind | 4 title | 5 who | 6 photo_id | 7 created_at | 8 gcal_id
 //   kind 가 event/anniv 이면 일정 행, photo 면 사진 행이다.
 //   사진은 하루에 여러 장이라 date 로는 한 줄을 특정할 수 없다. 행마다 id 가 키다.
 //   달력 격자에 보이는 건 그 날의 첫 사진, 즉 시트에서 먼저 나오는 줄이다.
 //   일정과 사진을 한 탭에 두는 건 달력 화면이 둘을 항상 같이 읽기 때문이다.
+//   gcal_id 는 구글 캘린더에 띄운 일정의 id 다. 구글 쪽 처리는 gcal.gs 가 한다.
 
 // 헤더만 먼저 붙여넣고 쓰기 시작하는 경우가 있어 1행 이하일 때도 서식을 다시 잡는다
 function calendarSheet_() {
   const sheet = sheet_(CAL_SHEET);
   if (sheet.getLastRow() <= 1) {
     sheet.getRange("A:B").setNumberFormat("@");
-    sheet.getRange("F:G").setNumberFormat("@");
+    sheet.getRange("F:H").setNumberFormat("@");
     if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["id", "date", "kind", "title", "who", "photo_id", "created_at"]);
+      sheet.appendRow(["id", "date", "kind", "title", "who", "photo_id", "created_at", "gcal_id"]);
     }
   }
   return sheet;
@@ -78,16 +79,14 @@ function calendarAction_(action, data) {
     const date = calDateKey_(data.date);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return fail_("bad date");
 
-    sheet.appendRow([
-      String(data.id).slice(0, 40),
-      date,
-      data.kind === "anniv" ? "anniv" : "event",
-      String(data.title || "").slice(0, 100),
-      String(data.who || "").slice(0, 10),
-      "",
-      stamp_(),
-    ]);
-    return ok_();
+    const kind = data.kind === "anniv" ? "anniv" : "event";
+    const title = String(data.title || "").slice(0, 100);
+    const who = String(data.who || "").slice(0, 10);
+    // 구글에 못 띄워도 yuju 저장은 한다. 빈 gcal_id 는 syncCalendarToGoogle 이 나중에 채운다
+    const gcalId = gcalCreate_(kind, date, title, who);
+
+    sheet.appendRow([String(data.id).slice(0, 40), date, kind, title, who, "", stamp_(), gcalId]);
+    return ok_({ gcal: !!gcalId });
   }
 
   // 일정 삭제 {action:"cal-delete", id}
@@ -95,11 +94,12 @@ function calendarAction_(action, data) {
     const last = sheet.getLastRow();
     if (last < 2) return fail_("empty");
 
-    const rows = sheet.getRange(2, 1, last - 1, 6).getValues();
+    const rows = sheet.getRange(2, 1, last - 1, GCAL_ID_COL).getValues();
     for (let i = 0; i < rows.length; i++) {
       // 행 번호는 다른 기기에서 추가/삭제하면 밀리므로 반드시 id로 찾는다
       if (String(rows[i][0]) === String(data.id)) {
         if (rows[i][2] === "photo" && rows[i][5]) trashPhoto_(rows[i][5]);
+        gcalDelete_(String(rows[i][2]).trim(), rows[i][GCAL_ID_COL - 1]);
         sheet.deleteRow(i + 2);
         return ok_();
       }

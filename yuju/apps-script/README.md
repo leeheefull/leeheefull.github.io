@@ -16,6 +16,7 @@ yuju 가 쓰는 Google Apps Script 웹앱의 원본. 시트 하나(`104A_zVF_EC.
 | `voca.gs` | `add` · `fail` · `cleanup` |
 | `todo.gs` | `todo-add` · `todo-toggle` |
 | `calendar.gs` | `cal-add` · `cal-delete` · `cal-photo` · `cal-photo-delete` · `cal-ping` |
+| `gcal.gs` | 일정·기념일을 구글 캘린더 "희찬❤유주" 에도 띄운다 (yuju → 구글 한 방향) |
 
 ## 고치고 올리는 법
 
@@ -26,10 +27,20 @@ yuju 가 쓰는 Google Apps Script 웹앱의 원본. 시트 하나(`104A_zVF_EC.
 반영됐는지는 `cal-ping` 으로 확인한다.
 
 ```
-curl -sL -X POST "<웹앱 URL>" -H "Content-Type: text/plain" -d '{"action":"cal-ping"}'
+curl -sL "<웹앱 URL>" -H "Content-Type: text/plain" -d '{"action":"cal-ping"}'
 ```
 
-새 배포 URL이 나오면 `yuju/*/[a-z]*.js` 네 파일의 `WRITE_URL` 도 같이 갈아야 한다.
+새 배포 URL이 나오면 `yuju/store.js` 의 `YUJU_API` 한 줄만 갈면 된다.
+
+## 구글 캘린더 연동
+
+`cal-add` 가 시트에 쓰면서 전용 캘린더 "희찬❤유주" 에도 하루 종일 일정을 만든다.
+제목은 `(희찬) …` · `(유주) …` · `(유주희찬) …`, 기념일은 매년 반복이다.
+구글 일정 id 는 calendar 탭 8열 `gcal_id` 에 두고 `cal-delete` 가 이걸로 같이 지운다.
+구글 캘린더에서 고친 건 yuju 로 돌아오지 않는다.
+
+처음 한 번은 편집기에서 `syncCalendarToGoogle` 을 실행한다. 캘린더 권한 동의 창이 뜨고,
+8열 헤더를 붙이고, 기존 일정을 옮긴다. `gcal_id` 가 빈 줄만 처리하므로 다시 돌려도 된다.
 
 ## 겪은 함정
 
