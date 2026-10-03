@@ -3,6 +3,8 @@ title: '제휴쇼핑몰 크롤링 프로젝트'
 company: '위메프'
 period: '2022.10 - 2022.12'
 summary: 'EP 미제공 쇼핑몰 대상 상품 크롤링 시스템 및 어드민 개발'
+resume: '상품 피드를 제공하지 않는 제휴 쇼핑몰의 상품 수집 크롤링 시스템 개발'
+role: '크롤링 서버·어드민 개발 담당'
 tech: ['Java', 'Spring Boot', 'JPA', 'MySQL', 'Redis', 'Gradle', 'AWS SQS', 'AWS S3']
 order: 4
 ---

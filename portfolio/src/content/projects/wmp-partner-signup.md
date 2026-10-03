@@ -3,6 +3,7 @@ title: '파트너 서비스 회원가입 로직 개선'
 company: '위메프'
 period: '2023.03 - 2023.04'
 summary: '사업자등록번호 검증·본인 인증 강화로 악성 파트너 등록 방지'
+resume: '사업자등록번호 검증과 본인 인증 강화로 악성 파트너 가입 차단'
 tech: ['Java', 'JSP', 'Spring Boot', 'MyBatis', 'MySQL', 'Redis', 'Maven', 'Jenkins']
 order: 1
 ---

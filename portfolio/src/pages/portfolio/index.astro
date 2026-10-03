@@ -1,0 +1,81 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Experience from '../../components/Experience.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { profile, careers as careerData, type Company } from '../../data/profile';
+
+const allProjects = await getCollection('projects');
+const projectsOf = (company: Company) =>
+  allProjects
+    .filter((p) => p.data.company === company)
+    .sort((a, b) => a.data.order - b.data.order);
+
+const careers = careerData.map((c) => ({
+  ...c,
+  projects: c.projectsFrom ? projectsOf(c.projectsFrom) : [],
+  phases: c.phases?.map((ph) => ({ ...ph, projects: projectsOf(ph.company) })),
+}));
+---
+
+<Base title="이희찬 | 포트폴리오" site="portfolio">
+  <header class="hero">
+    <h1>{profile.name}</h1>
+    <p class="role">{profile.role} · 경력 <Experience /></p>
+  </header>
+
+  <section class="block">
+    <h2 class="section-title">타임라인</h2>
+    <ol class="timeline">
+      {
+        careers.map((career) => (
+          <li>
+            <div class="timeline-head">
+              <h3>{career.company}</h3>
+              <span class="period">{career.period}</span>
+            </div>
+            {career.team && <p class="team">{career.team}</p>}
+            <p class="desc">{career.description}</p>
+
+            {career.projects.length > 0 && (
+              <ul class="project-cards">
+                {career.projects.map((project) => (
+                  <li>
+                    <ProjectCard project={project} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {career.phases && (
+              <ul class="phases">
+                {career.phases.map((phase) => (
+                  <li>
+                    <div class="timeline-head">
+                      <h4>
+                        {phase.company}
+                        {phase.note && <span class="note-badge">{phase.note}</span>}
+                      </h4>
+                      <span class="period">{phase.period}</span>
+                    </div>
+                    <p class="team">{phase.team}</p>
+                    <p class="desc">{phase.description}</p>
+                    {phase.projects.length > 0 && (
+                      <ul class="project-cards">
+                        {phase.projects.map((project) => (
+                          <li>
+                            <ProjectCard project={project} />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+</Base>

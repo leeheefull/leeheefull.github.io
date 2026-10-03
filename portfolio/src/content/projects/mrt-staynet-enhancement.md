@@ -3,6 +3,8 @@ title: '직계약 숙소 판매 정책 엔진 고도화'
 company: '마이리얼트립'
 period: '2025.08 - 2025.12'
 summary: '인원별 차등 요금, 투숙일 제한, CTA/CTD 등 호텔 업계 표준 판매 정책을 직계약 숙소 2천여 개 규모의 플랫폼에 이식 — 설계부터 DB/검색 마이그레이션, 여행자 가격 로직까지'
+resume: '인원별 요금·투숙일 제한 등 호텔 업계 표준 판매 정책을 직계약 숙소 2천여 개에 도입하고 전체 데이터를 무중단 이관'
+role: '인원 정책 설계·구현 리드'
 tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'MySQL', 'Elasticsearch', 'React']
 order: 7
 ---

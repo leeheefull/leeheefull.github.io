@@ -3,6 +3,8 @@ title: '쿠폰 관리 통합 개발'
 company: '큐텐테크놀로지'
 period: '2023.06 - 2023.12'
 summary: '투어 서비스 전반의 쿠폰 어드민 API 관리 포인트 통합 및 구조 개선'
+resume: '상품 카테고리별로 흩어져 있던 쿠폰 관리 API를 하나로 통합하고 구조 개선'
+role: '통합·구조 개선 담당'
 tech: ['Java', 'JSP', 'Spring Boot', 'MyBatis', 'MySQL', 'Gradle', 'AWS']
 order: 3
 ---

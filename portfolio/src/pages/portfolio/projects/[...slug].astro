@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from 'astro:content';
-import Base from '../../layouts/Base.astro';
+import Base from '../../../layouts/Base.astro';
+import { PORTFOLIO } from '../../../data/links';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -12,18 +13,18 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content } = await render(project);
-const base = import.meta.env.BASE_URL;
 ---
 
-<Base title={`${project.data.title} | 이희찬`} description={project.data.summary}>
-  <nav class="back">
-    <a href={`${base}/`}>← 돌아가기</a>
-  </nav>
+<Base title={`${project.data.title} | 이희찬`} description={project.data.summary} site="portfolio">
+  <a slot="topbar-left" href={`${PORTFOLIO}/`}>← 포트폴리오</a>
 
   <header class="project-header">
     <p class="company">{project.data.company}</p>
     <h1>{project.data.title}</h1>
-    {project.data.period && <p class="period">{project.data.period}</p>}
+    <p class="period">
+      {project.data.period}
+      {project.data.role && <span class="role-tag">{project.data.role}</span>}
+    </p>
     {
       project.data.tech.length > 0 && (
         <ul class="tech">
@@ -66,11 +67,6 @@ const base = import.meta.env.BASE_URL;
 </Base>
 
 <style>
-  .back {
-    margin-bottom: 32px;
-    font-size: 0.95rem;
-  }
-
   .project-header .company {
     font-weight: 600;
     color: var(--accent);
@@ -83,9 +79,23 @@ const base = import.meta.env.BASE_URL;
   }
 
   .project-header .period {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    white-space: normal;
     margin-top: 8px;
     color: var(--text-soft);
     font-size: 0.9rem;
+  }
+
+  .role-tag {
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
   }
 
   .tech {

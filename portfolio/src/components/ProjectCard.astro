@@ -1,0 +1,37 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { projectHref } from '../data/links';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+---
+
+<a class="project-card" href={projectHref(project.id)}>
+  <div class="card-head">
+    <span class="card-title">{project.data.title}</span>
+    {project.data.period && <span class="period">{project.data.period}</span>}
+  </div>
+  {project.data.role && <p class="card-role">{project.data.role}</p>}
+  <p class="card-summary">{project.data.resume}</p>
+  {
+    project.data.tech.length > 0 && (
+      <ul class="card-tech">
+        {project.data.tech.slice(0, 5).map((t) => (
+          <li class="chip">{t}</li>
+        ))}
+      </ul>
+    )
+  }
+</a>
+
+<style>
+  .card-role {
+    margin-top: 2px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+</style>

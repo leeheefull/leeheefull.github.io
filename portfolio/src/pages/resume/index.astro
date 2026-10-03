@@ -1,0 +1,444 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Experience from '../../components/Experience.astro';
+import { profile, skills, careers, education, certifications } from '../../data/profile';
+import { summary, highlights, featured, others } from '../../data/resume';
+import { PORTFOLIO, projectHref } from '../../data/links';
+
+const allProjects = await getCollection('projects');
+const byId = new Map(allProjects.map((p) => [p.id, p]));
+const project = (id: string): CollectionEntry<'projects'> => {
+  const found = byId.get(id);
+  if (!found) throw new Error(`resume.ts 가 없는 프로젝트를 가리킨다: ${id}`);
+  return found;
+};
+
+// 연혁은 회사 단위로 평평하게 편다. 위메프·큐텐처럼 전적한 경우도 한 줄씩
+const history = careers.flatMap((c) =>
+  c.phases
+    ? c.phases.map((ph) => ({ company: ph.company, team: ph.team, period: ph.period, summary: ph.summary, note: ph.note }))
+    : [{ company: c.company, team: c.team, period: c.period, summary: c.summary, note: undefined }]
+);
+
+const otherGroups = Object.entries(others).map(([company, ids]) => ({
+  company,
+  projects: ids.map(project),
+  total: allProjects.filter((p) => p.data.company === company).length,
+}));
+---
+
+<Base title="이희찬 | 이력서" description="백엔드 개발자 이희찬의 이력서" site="resume">
+  <header class="hero">
+    <h1>{profile.name}</h1>
+    <p class="role">{profile.role} · 경력 <Experience /></p>
+    <p class="intro">{summary.join(' ')}</p>
+    <ul class="contacts">
+      <li><a href={`mailto:${profile.email}`}>{profile.email}</a></li>
+    </ul>
+  </header>
+
+  <section class="block">
+    <ul class="highlights">
+      {
+        highlights.map((h) => (
+          <li>
+            <a class="highlight" href={`#${h.project}`}>
+              <strong>{h.value}</strong>
+              <span>{h.label}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">경력</h2>
+    <ol class="history">
+      {
+        history.map((h) => (
+          <li>
+            <div class="timeline-head">
+              <h3>
+                {h.company}
+                {h.note && <span class="note-badge">{h.note}</span>}
+              </h3>
+              <span class="period">{h.period}</span>
+            </div>
+            <p class="team">{h.team}</p>
+            <p class="desc">{h.summary}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">대표 프로젝트</h2>
+    <ul class="project-cards featured">
+      {
+        featured.map((f) => {
+          const p = project(f.id);
+          return (
+            <li id={f.id}>
+              <article class="project-card">
+                <div class="card-head">
+                  <h3 class="card-title">{f.title}</h3>
+                  <span class="period">{p.data.period}</span>
+                </div>
+                <p class="card-meta">
+                  {p.data.company}
+                  {p.data.role && ` · ${p.data.role}`}
+                </p>
+                <dl class="story">
+                  <dt>문제</dt>
+                  <dd>{f.problem}</dd>
+                  <dt>한 일</dt>
+                  <dd>{f.action}</dd>
+                  <dt>결과</dt>
+                  <dd class="result">{f.result}</dd>
+                </dl>
+                <div class="card-foot">
+                  <ul class="card-tech">
+                    {p.data.tech.slice(0, 5).map((t) => (
+                      <li class="chip">{t}</li>
+                    ))}
+                  </ul>
+                  <a class="more" href={projectHref(f.id)}>
+                    자세히 보기<span class="sr-only"> — {f.title}</span> →
+                  </a>
+                </div>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">그 밖의 프로젝트</h2>
+    <div class="others">
+      {
+        otherGroups.map((g) => (
+          <div>
+            <h3>{g.company}</h3>
+            <ul>
+              {g.projects.map((p) => (
+                <li>
+                  <a href={projectHref(p.id)}>{p.data.resume}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+    <a class="all-projects" href={`${PORTFOLIO}/`}>
+      전체 프로젝트 {allProjects.length}건은 포트폴리오에서 →
+    </a>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">기술 스택</h2>
+    <dl class="skills">
+      {
+        skills.map((group) => (
+          <div class="skill-row">
+            <dt>{group.label}</dt>
+            <dd>
+              <ul>
+                {group.items.map((item) => (
+                  <li class="chip">{item}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">학력</h2>
+    <ul class="plain">
+      {
+        education.map((e) => (
+          <li>
+            <strong>{e.school}</strong> · {e.major}
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="block">
+    <h2 class="section-title">자격증</h2>
+    <ul class="plain">
+      {
+        certifications.map((c) => (
+          <li>
+            <strong>{c.name}</strong> · {c.issuer} <span class="period">{c.date}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+</Base>
+
+<style>
+  .contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 16px;
+    list-style: none;
+    font-size: 0.95rem;
+  }
+
+  .highlights {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .highlight {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    color: inherit;
+    transition: border-color 0.15s ease;
+  }
+
+  .highlight:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+  }
+
+  .highlight strong {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  .highlight span {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .history {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .history > li {
+    position: relative;
+    padding-left: 22px;
+    border-left: 2px solid var(--border);
+  }
+
+  .history > li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 7px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .history h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.05rem;
+  }
+
+  .history .desc {
+    margin-top: 2px;
+  }
+
+  .project-cards {
+    margin-top: 0;
+  }
+
+  .project-cards > li {
+    scroll-margin-top: 24px;
+  }
+
+  /* 이력서 카드는 링크가 아니라서 포트폴리오 카드의 hover 강조를 끈다 */
+  article.project-card:hover {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+
+  .featured > li > article.project-card:hover {
+    border-left-color: var(--accent);
+  }
+
+  h3.card-title {
+    font-size: 1rem;
+  }
+
+  .card-meta {
+    margin-top: 2px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+  }
+
+  .story {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 6px 12px;
+    margin-top: 12px;
+    font-size: 0.92rem;
+  }
+
+  .story dt {
+    font-weight: 700;
+    color: var(--text-soft);
+  }
+
+  .story .result {
+    font-weight: 600;
+  }
+
+  .card-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .card-foot .card-tech {
+    margin-top: 0;
+  }
+
+  .more {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .others {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .others h3 {
+    font-size: 0.95rem;
+  }
+
+  .others ul {
+    margin-top: 6px;
+    padding-left: 20px;
+    font-size: 0.92rem;
+  }
+
+  .others li {
+    margin: 4px 0;
+  }
+
+  .others a {
+    color: inherit;
+  }
+
+  .others a:hover {
+    color: var(--accent);
+  }
+
+  .all-projects {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-soft);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .all-projects:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+  }
+
+  .skills {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .skill-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+
+  .skill-row dt {
+    flex: 0 0 84px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+
+  .skill-row dd ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+  }
+
+  .plain {
+    list-style: none;
+    font-size: 0.95rem;
+  }
+
+  @media (max-width: 640px) {
+    .highlights {
+      grid-template-columns: 1fr;
+    }
+
+    .story {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    .story dd + dt {
+      margin-top: 8px;
+    }
+  }
+
+  @media print {
+    :global(main) {
+      padding: 0;
+    }
+
+    .more,
+    .all-projects {
+      display: none;
+    }
+
+    .project-cards > li {
+      break-inside: avoid;
+    }
+  }
+</style>

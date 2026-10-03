@@ -3,8 +3,9 @@ title: 'AI 기반 CMS 연동 자동화 파이프라인 구축'
 company: '마이리얼트립'
 period: '2026.02 - 2026.05'
 summary: '신규 숙소 공급사(CMS) 연동을 AI 파이프라인으로 재설계 — 최소 2개월 걸리던 연동 개발을 2주로 줄이고, 글로벌 CMS DerbySoft를 Certification까지 완주'
+resume: '숙소 공급사 시스템 연동 개발을 AI 파이프라인으로 재설계 — 연동 1건 최소 2개월 → 2주, 글로벌 공급사 DerbySoft 인증 통과'
+role: '프로젝트 리드 · 공급사 협의'
 tech: ['Kotlin', 'Spring Boot', 'Kafka', 'MySQL', 'Claude Code', 'AI Agent']
-featured: true
 order: 3
 ---
 

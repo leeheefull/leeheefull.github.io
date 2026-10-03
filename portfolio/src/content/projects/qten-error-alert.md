@@ -3,6 +3,7 @@ title: '실시간 에러 알림 기능 개발'
 company: '큐텐테크놀로지'
 period: '2023.05'
 summary: 'Logback 기반 에러 알림 자동화 — 에러를 중요도별로 분류해 즉시 대응이 필요한 건만 실시간 통지하고 흩어져 있던 예외 처리를 정리'
+resume: '에러를 중요도별로 걸러 Slack으로 실시간 통지하는 자동 알림 구축'
 tech: ['Java', 'Spring Boot', 'Logback', 'Slack Webhook API', 'ELK']
 order: 4
 ---

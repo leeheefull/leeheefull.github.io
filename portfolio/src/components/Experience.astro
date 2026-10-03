@@ -1,0 +1,14 @@
+---
+import { totalExperience } from '../data/profile';
+---
+
+<span data-experience>{totalExperience()}</span>
+
+<script>
+  // 정적 빌드라 HTML 에는 빌드한 날 기준 연차가 박힌다. 보는 날 기준으로 다시 계산해 덮어쓴다
+  import { totalExperience } from '../data/profile';
+
+  document.querySelectorAll('[data-experience]').forEach((el) => {
+    el.textContent = totalExperience();
+  });
+</script>

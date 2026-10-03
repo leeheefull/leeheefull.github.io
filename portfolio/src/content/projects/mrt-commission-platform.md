@@ -3,8 +3,9 @@ title: '숙박 수수료 체계 전환 — 파트너 단일 요율에서 옵션 
 company: '마이리얼트립'
 period: '2025.11 - 2026.02'
 summary: '숙소 8천여 개가 등록된 플랫폼의 수수료 체계를 파트너 레벨 단일 요율에서 옵션(상품) 레벨 요율로 전면 전환 — 여행자·파트너·매니저·배치·CMS 전 구간의 가격 로직 변경'
+resume: '숙소 8천여 개 플랫폼의 수수료 체계를 숙소 단위에서 상품 단위로 전환 — 4개 서비스 무중단 배포, 이후 관련 장애 0건'
+role: '프로젝트 리드 · 숙박 영역 단독 개발 · 정산팀 협의'
 tech: ['Kotlin', 'Java', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL', 'Elasticsearch', 'React']
-featured: true
 order: 5
 ---
 

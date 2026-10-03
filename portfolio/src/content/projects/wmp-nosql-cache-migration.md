@@ -3,6 +3,7 @@ title: '파트너 서비스 NoSQL Cache 기술 변경'
 company: '위메프'
 period: '2023.02 - 2023.03'
 summary: 'Couchbase 만료에 따라 파트너 도메인 캐시 36만 건을 Redis로 무중단 이관'
+resume: '파트너 캐시 데이터 36만 건을 Couchbase에서 Redis로 무중단 이관'
 tech: ['Java', 'Spring Boot', 'MyBatis', 'MySQL', 'Redis', 'Couchbase', 'Maven', 'Jenkins']
 order: 2
 ---

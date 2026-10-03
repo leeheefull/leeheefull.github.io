@@ -52,7 +52,8 @@ jobs:
           # apps-script 는 Apps Script 편집기에 붙여넣는 원본이라 사이트에 올리지 않는다
           rsync -a --exclude 'apps-script' yuju/ _site/yuju/
 
-          rsync -a portfolio/dist/ _site/portfolio/
+          # portfolio 빌드 결과에는 /portfolio/ 와 /resume/ 이 함께 들어 있다
+          rsync -a portfolio/dist/ _site/
 
       - name: Encrypt index page
         env:

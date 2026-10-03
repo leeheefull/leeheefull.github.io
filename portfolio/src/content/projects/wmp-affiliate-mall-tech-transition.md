@@ -3,6 +3,7 @@ title: '제휴쇼핑몰 서비스 기술셋 전환'
 company: '위메프'
 period: '2023.01 - 2023.04'
 summary: 'Node.js 서비스를 Kotlin Spring 멀티 모듈로 전환하고 테스트·문서화 체계 구축'
+resume: 'Node.js 서비스를 Kotlin·Spring 멀티 모듈로 전환하고 테스트 기반 API 문서화 도입'
 tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'Node Express', 'MySQL', 'Gradle', 'AWS']
 order: 3
 ---

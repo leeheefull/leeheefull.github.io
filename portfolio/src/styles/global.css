@@ -23,6 +23,8 @@ html {
   color: var(--text);
   background: var(--bg);
   line-height: 1.65;
+  word-break: keep-all;
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -50,17 +52,7 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 
-section + section {
-  margin-top: 64px;
-}
 
-.section-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border);
-}
 
 .chip {
   display: inline-block;
@@ -71,4 +63,187 @@ section + section {
   color: var(--text-soft);
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+/* 화면에는 숨기고 스크린 리더에만 읽힌다 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 이력서·포트폴리오가 같이 쓰는 화면 요소 */
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+}
+
+.role {
+  margin-top: 4px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.intro {
+  margin-top: 16px;
+  color: var(--text-soft);
+}
+
+.hero + .block,
+.block + .block {
+  margin-top: 44px;
+}
+
+.section-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.featured > li > .project-card {
+  border-left: 3px solid var(--accent);
+}
+
+.timeline {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+
+.timeline > li {
+  position: relative;
+  padding-left: 26px;
+  border-left: 2px solid var(--border);
+}
+
+.timeline > li::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 8px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+}
+
+.timeline-head h3 {
+  font-size: 1.15rem;
+}
+
+.period {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.team {
+  margin-top: 2px;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+}
+
+.desc {
+  margin-top: 6px;
+  font-size: 0.95rem;
+}
+
+.phases {
+  list-style: none;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.phases > li {
+  padding: 16px 18px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.phases h4 {
+  font-size: 0.98rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.project-cards {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.project-card {
+  display: block;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.project-card:hover {
+  text-decoration: none;
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgb(9 105 218 / 0.08);
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 14px;
+}
+
+.card-title {
+  font-weight: 700;
+}
+
+.card-summary {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+
+.card-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  list-style: none;
 }

@@ -3,6 +3,7 @@ title: '개인정보 데이터 및 로그 데이터 삭제 배치 개발'
 company: '큐텐테크놀로지'
 period: '2024.05 - 2024.06'
 summary: '보유기간이 지난 개인정보·로그 데이터 7,400만 건을 무중단으로 처리하는 배치 개발'
+resume: '7개 DB·35개 테이블의 보유기간 만료 개인정보 7,400만 건을 서비스 영향 없이 파기하는 배치 개발'
 tech: ['Kotlin', 'Spring Boot', 'JPA', 'QueryDSL', 'MySQL', 'Gradle', 'AWS']
 order: 1
 ---

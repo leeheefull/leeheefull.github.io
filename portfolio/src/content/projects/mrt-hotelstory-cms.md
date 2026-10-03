@@ -3,6 +3,8 @@ title: '신규 CMS(호텔스토리) 연동 및 GSA 판매 채널 구축'
 company: '마이리얼트립'
 period: '2025.02 - 2025.05'
 summary: '국내 숙소 공급 확대를 위한 신규 CMS 연동을 프로젝트 세팅부터 운영 배포까지 단독 담당 — 객실/요금/재고 동기화, 예약 연동, GSA 채널까지 엔드투엔드 구축'
+resume: '국내 숙소 공급사(호텔스토리) 연동을 단독으로 구축해 약 2개월 만에 운영 배포 — 연동 숙소 150여 개'
+role: '단독 담당 · 세팅부터 운영 배포까지'
 tech: ['Kotlin', 'Spring Boot', 'Spring Batch', 'Kafka', 'MySQL', 'Elasticsearch']
 order: 11
 ---
