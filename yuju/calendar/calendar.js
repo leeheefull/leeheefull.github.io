@@ -51,6 +51,8 @@ const calPending = new Map();
 const calPreview = new Map();
 // 날짜 → { events, photos }. 그릴 때마다 칸 42개가 전체 줄을 매번 훑지 않도록 데이터가 바뀔 때 한 번만 만든다
 let calIndex = new Map();
+// 기념일은 날짜 그대로가 아니라 "월-일" 로 따로 묶는다. 매년 그 날에 떠야 하기 때문이다
+let calAnnivs = new Map();
 const NO_DAY = Object.freeze({ events: [], photos: [] });
 
 // 드라이브에는 원본을 그대로 둔다. 달력이 부르는 건 드라이브가 원본에서 만들어주는
@@ -105,7 +107,14 @@ function setServer(rows) {
 // 시트에 먼저 나오는 사진이 첫 장이고, 올리는 중인 사진은 아직 시트에 없으므로 뒤에 붙는다
 function reindex() {
   const index = new Map();
+  const annivs = new Map();
   const put = (it, pending) => {
+    if (it.kind === "anniv") {
+      const md = it.date.slice(5);
+      if (!annivs.has(md)) annivs.set(md, []);
+      annivs.get(md).push(pending ? { ...it, pending } : it);
+      return;
+    }
     let day = index.get(it.date);
     if (!day) {
       day = { events: [], photos: [] };
@@ -134,9 +143,26 @@ function reindex() {
     if (p.op !== "delete" && !onServer.has(id)) put(p.item, true);
   }
   calIndex = index;
+  calAnnivs = annivs;
 }
 
-const dayOf = (key) => calIndex.get(key) || NO_DAY;
+const isLeap = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+
+// 그 날의 기념일. 처음 등록한 날부터 매년 같은 월-일에 뜬다(등록한 해보다 앞선 해에는 안 띄운다).
+// 2월 29일 기념일은 윤년이 아닌 해에 2월 28일에 띄운다 — 아예 안 뜨는 것보다 낫다
+function annivsOn(key) {
+  const md = key.slice(5);
+  let list = calAnnivs.get(md) || [];
+  if (md === "02-28" && !isLeap(Number(key.slice(0, 4)))) list = list.concat(calAnnivs.get("02-29") || []);
+  return list.filter((it) => it.date <= key);
+}
+
+// 기념일을 맨 앞에 둔다. 칸에는 두 개까지만 보이므로 매년 오는 날이 묻히지 않게 한다
+function dayOf(key) {
+  const day = calIndex.get(key) || NO_DAY;
+  const annivs = annivsOn(key);
+  return annivs.length ? { events: annivs.concat(day.events), photos: day.photos } : day;
+}
 
 function monthDate() {
   const [y, m] = todayKey.split("-").map(Number);
