@@ -1017,7 +1017,7 @@ section {
 
 .cal-dow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   padding: 0 8px 4px;
 }
 
@@ -1042,9 +1042,12 @@ section {
   padding: 0 8px 10px;
 }
 
+/* 1fr 은 "내용보다 좁아지지 않는다" 는 뜻이라, 긴 일정 이름이 있는 요일 칸만 넓어지고
+   사진(칸 너비의 정사각형)도 칸마다 크기가 달라졌다. minmax(0, …) 로 일곱 칸을 똑같이 나누고
+   넘치는 일정 이름은 .cal-tag 가 … 로 줄인다. 요일 머리줄도 같은 폭이어야 열이 맞는다 */
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 3px 2px;
 }
 
