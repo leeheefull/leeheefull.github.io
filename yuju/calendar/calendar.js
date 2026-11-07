@@ -58,10 +58,13 @@ const NO_DAY = Object.freeze({ events: [], photos: [] });
 // 드라이브에는 원본을 그대로 둔다. 달력이 부르는 건 드라이브가 원본에서 만들어주는
 // 썸네일이라, 원본을 보관해도 화면에서 쓰는 데이터는 늘지 않는다.
 // 다만 너무 크면 전송도 Apps Script 도 버거우므로 이 선을 넘을 때만 줄인다.
-// (서버는 9MB 넘는 건 받지 않는다)
+// (서버는 9MB 넘는 건 받지 않는다) 회전 정보가 붙은 사진도 원본 대신 바로 세운 사본을 올린다 — 아래 jpegOrientation
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const FALLBACK_EDGE = 2400;
 const JPEG_QUALITY = 0.9;
+// 회전 정보가 붙은 사진을 바로 세워 다시 저장할 때의 긴 변. 아이폰 사파리는 캔버스가
+// 약 1,670만 화소를 넘으면 그리지 못한다(4096×3072 = 1,260만). 썸네일로 쓰기엔 넉넉하다
+const UPRIGHT_EDGE = 4096;
 
 // 다른 화면에 있다 돌아왔을 때 이보다 오래됐으면 다시 받는다
 const REFETCH_AFTER_MS = 60 * 1000;
@@ -185,6 +188,36 @@ function fileToDataUrl(file) {
 
 // 상한을 넘는 사진만 캔버스로 줄인다.
 // <img> 로 한 번 거치면 요즘 브라우저가 EXIF 회전을 알아서 반영해준다.
+// JPEG 의 EXIF 회전 값(1~8). 없거나 JPEG 가 아니면 1.
+// 아이폰은 세로 사진을 눕힌 채 저장하고 "보여줄 때 돌려라" 만 적어 둔다. 드라이브 썸네일이
+// 이걸 따르지 않을 때가 있어서(2026-10-25~11-01 에 올린 사진이 실제로 옆으로 누웠다)
+// 회전 값이 있으면 올리기 전에 픽셀을 바로 세운다
+async function jpegOrientation(file) {
+  const view = new DataView(await file.slice(0, 128 * 1024).arrayBuffer());
+  if (view.byteLength < 4 || view.getUint16(0) !== 0xffd8) return 1;
+  let i = 2;
+  while (i + 4 <= view.byteLength) {
+    const marker = view.getUint16(i);
+    const len = view.getUint16(i + 2);
+    if (marker === 0xffda) break; // 이미지 데이터가 시작되면 더 볼 머리말이 없다
+    if (marker === 0xffe1 && i + 10 <= view.byteLength && view.getUint32(i + 4) === 0x45786966) { // "Exif"
+      const tiff = i + 10;
+      const little = view.getUint16(tiff) === 0x4949;
+      const ifd = tiff + view.getUint32(tiff + 4, little);
+      if (ifd + 2 > view.byteLength) return 1;
+      const count = view.getUint16(ifd, little);
+      for (let k = 0; k < count; k++) {
+        const entry = ifd + 2 + k * 12;
+        if (entry + 10 > view.byteLength) return 1;
+        if (view.getUint16(entry, little) === 0x0112) return view.getUint16(entry + 8, little) || 1;
+      }
+      return 1;
+    }
+    i += 2 + len;
+  }
+  return 1;
+}
+
 function shrinkToJpeg(file, edge) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
@@ -552,7 +585,11 @@ photoInput.addEventListener("change", async () => {
   let dataUrl;
   let shrunk = false;
   try {
-    if (file.size <= MAX_UPLOAD_BYTES) {
+    if ((await jpegOrientation(file)) !== 1) {
+      // <img> 로 그리면 브라우저가 회전을 적용하므로, 캔버스에 옮겨 담는 것만으로 바로 선다
+      dataUrl = await shrinkToJpeg(file, UPRIGHT_EDGE);
+      shrunk = true;
+    } else if (file.size <= MAX_UPLOAD_BYTES) {
       dataUrl = await fileToDataUrl(file); // 원본 그대로
     } else {
       sheetStatus.textContent = "사진이 커서 조금 줄이는 중...";
